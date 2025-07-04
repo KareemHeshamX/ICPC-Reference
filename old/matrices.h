@@ -10,7 +10,7 @@ matrix initial(int n, int m, int val = 0) {
 	return matrix(n, row(m, val));
 }
 
-matrix identity(int n) {
+matrix make_identity(int n) {
 	matrix rt = initial(n, n);
 	for (int i = 0; i < n; i++)rt[i][i] = 1;
 	return rt;
@@ -40,13 +40,13 @@ matrix multiply(const matrix& a, const matrix& b) {
 }
 
 matrix power(const matrix& a, ll k) {
-	if (k == 0)return identity(sz(a));
+	if (k == 0)return make_identity(sz(a));
 	if (k & 1)return multiply(a, power(a, k - 1));
 	return power(multiply(a, a), k >> 1);
 }
 
 matrix power_itr(matrix a, ll k) {
-	matrix rt = identity(sz(a));
+	matrix rt = make_identity(sz(a));
 	while (k) {
 		if (k & 1)rt = multiply(rt, a);
 		a = multiply(a, a); k >>= 1;
