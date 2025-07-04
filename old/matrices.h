@@ -10,7 +10,7 @@ matrix initial(int n, int m, int val = 0) {
 	return matrix(n, row(m, val));
 }
 
-matrix identity(int n) {
+matrix make_identity(int n) {
 	matrix rt = initial(n, n);
 	for (int i = 0; i < n; i++)rt[i][i] = 1;
 	return rt;
