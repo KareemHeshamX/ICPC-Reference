@@ -39,3 +39,9 @@ ll sumRangeDivisors(ll x) {
 /*
  * sum of q^0 + q^1 + q^2 ... q^INF = 1/q if (0<q<1)
  */
+
+
+/*
+ sum numbers to the power of 2 from 1 to n = (n * (n + 1) * (2n + 1) / 6)
+ sum numbers to the power of 3 from 1 to n = ((n * (n + 1) / 2) ^ 2)
+ */
