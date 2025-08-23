@@ -1,7 +1,3 @@
-// T: type of values
-// merge: function to combine two segments
-// neutral: identity element for merge
-
 template <typename T>
 struct SegTree {
     int n;
@@ -11,8 +7,9 @@ struct SegTree {
 
     // Constructor
     SegTree(int _n,
-            function<T(const T&, const T&)> _merge,
-            T _neutral)
+                function<T(const T&, const T&)> _merge,
+                T _neutral
+                )
         : n(_n), merge(_merge), neutral(_neutral) {
         tree.assign(4 * n, neutral);
     }
