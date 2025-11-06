@@ -1,3 +1,13 @@
+ll power(ll num, ll p, ll mod) {
+    ll ans = 1;
+    while (p > 0) {
+        if (p & 1) ans = (ans * num) % mod;
+        num = (num * num) % mod;
+        p >>= 1;
+    }
+    return ans;
+}
+
 struct hashing {
     int MOD, BASE;
     vector<int> Hash, modInv;

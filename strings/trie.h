@@ -1,31 +1,29 @@
-#include<bits/stdc++.h>
-using namespace std;
-
 struct trie {
-    trie* next[26]{};
-    bool endOfWord = false;
-    void insert(string &s) {
-        trie *current = this;
-        for (char &ch : s) {
-            int i = ch - 'a';
-            if (current -> next[i] == nullptr) {
-                current -> next[i] = new trie;
-            }
-            current = current -> next[i];
-        }
-        current -> endOfWord = true;
-    }
-    bool search(string &s) {
-        trie *current = this;
-        for (char &ch : s) {
-            int i = ch - 'a';
-            if (current -> next[i] == nullptr) {
-                return false;
-            }
-            current = current -> next[i];
-        }
-        return current -> endOfWord;
-    }
+	trie* next[26]{};
+	trie* root = this;
+	bool endOfWord = false;
+	void insert(string &s) {
+		trie *current = this;
+		for (char &ch : s) {
+			int i = ch - 'a';
+			if (current -> next[i] == nullptr) {
+				current -> next[i] = new trie;
+			}
+			current = current -> next[i];
+		}
+		current -> endOfWord = true;
+	}
+	bool search(string &s) {
+		trie *current = this;
+		for (char &ch : s) {
+			int i = ch - 'a';
+			if (current -> next[i] == nullptr) {
+				return false;
+			}
+			current = current -> next[i];
+		}
+		return current -> endOfWord;
+	}
 	bool erase(string& s, int idx = 0) {
 		if (idx == s.size()) {
 			if (!endOfWord) return false;
