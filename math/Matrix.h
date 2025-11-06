@@ -50,7 +50,7 @@ struct matrix {
 	}
 };
 
-matrix identity(int n) {
+matrix matId(int n) {
 	matrix r(n, n);
 	for (int i = 0; i < n; i++)
 		r.v[i][i] = 1;
@@ -66,7 +66,7 @@ matrix addIdentity(const matrix &a) {
 
 matrix power(matrix a, long long y) {
 	assert(y >= 0 && a.size() == a.cols());
-	matrix rt = identity(a.size());
+	matrix rt = matId(a.size());
 	while (y > 0) {
 		if (y & 1)
 			rt = rt * a;
