@@ -1,139 +1,111 @@
-#define all(v) v.begin(),v.end()
-class suffix_array {
-    const static int alpha = 128;
-    int getOrder(int a) const {
-        return (a < (int) order.size() ? order[a] : 0);
-    }
-    void radix_sort(int k) {
-        vector<int> frq(n), tmp(n);
-        for (auto &it : suf)
-            frq[getOrder(it + k)]++;
-        for (int i = 1; i < n; i++)
-            frq[i] += frq[i - 1];
-        for (int i = n - 1; i >= 0; i--)
-            tmp[--frq[getOrder(suf[i] + k)]] = suf[i];
-        suf = tmp;
-    }
-public:
-    int n;
+struct SuffixArray {
+    const static int alpha = 128, LOG = 20;
+    vector<int> suf, order, newOrder, lcp, logs;
+    vector<vector<int>> table;
     string s;
-    vector<int> suf, lcp, order; // order store position of suffix i in suf array
-    suffix_array(const string &s) :
-            n(s.size() + 1), s(s) {
-        suf = order = lcp = vector<int>(n);
-        vector<int> bucket_idx(n), newOrder(n), newsuff(n);
+    int n;
+
+    SuffixArray(const string& _s) : n(sz(_s) + 1), s(_s) {
+        s += ' ';
+        suf = order = newOrder = vector<int>(n);
+        vector<int> bucket_idx(n), newOrder(n), new_suf(n);
         vector<int> prev(n), head(alpha, -1);
+
+        auto getOrder = [&](const int& a) -> int {
+            return a < n ? order[a] : 0;
+        };
+
         for (int i = 0; i < n; i++) {
             prev[i] = head[s[i]];
             head[s[i]] = i;
         }
-        int buc = -1, idx = 0;
-        for (int i = 0; i < alpha; i++) {
-            if (head[i] == -1)
-                continue;
+        for (int i = 0, buc = -1, idx = 0; i < alpha; i++) {
+            if(head[i] == -1) continue;
             bucket_idx[++buc] = idx;
-            for (int j = head[i]; ~j; j = prev[j])
-                suf[idx++] = j, order[j] = buc;
+            for (int j = head[i]; ~j; j = prev[j]){
+                suf[idx++] = j; order[j] = buc;
+            }
         }
-        int len = 1;
-        do {
-            auto cmp = [&](int a, int b) {
-                if (order[a] != order[b])
-                    return order[a] < order[b];
+
+        for (int len = 1; order[suf[n - 1]] != n - 1; len <<= 1) {
+            auto comp = [&](const int &a, const int &b) -> bool {
+                if (order[a] != order[b]) return order[a] < order[b];
                 return getOrder(a + len) < getOrder(b + len);
             };
             for (int i = 0; i < n; i++) {
                 int j = suf[i] - len;
-                if (j < 0)
-                    continue;
-                newsuff[bucket_idx[order[j]]++] = j;
+                if(j < 0) continue;
+                new_suf[bucket_idx[order[j]]++] = j;
             }
-            for (int i = 1; i < n; i++) {
-                suf[i] = newsuff[i];
-                bool cmpres = cmp(suf[i - 1], suf[i]);
-                newOrder[suf[i]] = newOrder[suf[i - 1]] + cmpres;
-                if (cmpres)
+            for(int i = 1; i < n; i++){
+                suf[i] = new_suf[i];
+                bool newGroup = comp(suf[i - 1], suf[i]);
+                newOrder[suf[i]] = newOrder[suf[i - 1]] + newGroup;
+                if(newGroup){
                     bucket_idx[newOrder[suf[i]]] = i;
+                }
             }
             order = newOrder;
-            len <<= 1;
-        } while (order[suf[n - 1]] != n - 1);
-        buildLCP();
-    }
-    /*
-     * longest common prefix
-     * O(n)
-     * lcp[i] = lcp(suf[i],suf[i-1])
-     */
-    void buildLCP() {
+        }
+
         lcp = vector<int>(n);
         int k = 0;
         for (int i = 0; i < n - 1; i++) {
             int pos = order[i];
             int j = suf[pos - 1];
-            while (s[i + k] == s[j + k])
-                k++;
+            while (s[i + k] == s[j + k]) k++;
             lcp[pos] = k;
-            if (k)
-                k--;
+            k = max(0, k - 1);
         }
+        buildTable();
     }
-    int LCP_by_order(int a, int b) {
-        if (a > b)
-            swap(a, b);
-        int mn = n - suf[a] - 1;
-        for (int k = a + 1; k <= b; k++)
-            mn = min(mn, lcp[k]);
-        return mn;
-    }
-    //LCP(i,j) : longest common prefix between suffix i and suffix j
-    int LCP(int i, int j) {
-        //return LCP_by_order(order[i],order[j]);
-        if (order[j] < order[i])
-            swap(i, j);
-        int mn = n - i - 1;
-        for (int k = order[i] + 1; k <= order[j]; k++)
-            mn = min(mn, lcp[k]);
-        return mn;
-    }
-    //compare s[a.first..a.second] with s[b.first..b.second]
-    //-1:a<b ,0:a==b,1:a>b
-    int compare_substrings(pair<int, int> a, pair<int, int> b) {
-        int lcp = min(
-                { LCP(a.first, b.first), a.second - a.first + 1, b.second
-                                                                 - b.first + 1 });
-        a.first += lcp;
-        b.first += lcp;
-        if (a.first <= a.second) {
-            if (b.first <= b.second) {
-                if (s[a.first] == s[b.first])
-                    return 0;
-                return (s[a.first] < s[b.first] ? -1 : 1);
+
+    void buildTable() {
+        table = vector<vector<int>>(n + 1, vector<int>(LOG));
+        logs = vector<int>(n + 1);
+        logs[1] = 0;
+        for (int i = 2; i <= n; i++)
+            logs[i] = logs[i >> 1] + 1;
+        for (int i = 0; i < n; i++) {
+            table[i][0] = lcp[i];
+        }
+        for (int j = 1; j <= logs[n]; j++) {
+            for (int i = 0; i <= n - (1 << j); i++) {
+                table[i][j] = min(table[i][j - 1], table[i + (1 << (j - 1))][j - 1]);
             }
-            return 1;
         }
-        return (b.first <= b.second ? -1 : 0);
     }
-    pair<int, int> find_string(const string &x) {
-        int st = 0, ed = n;
-        for (int i = 0; i < sz(x) && st < ed; i++) {
-            auto cmp = [&](int a, int b) {
-                if (a == -1)
-                    return x[i] < s[b + i];
-                return s[a + i] < x[i];
-            };
-            st = lower_bound(suf.begin() + st, suf.begin() + ed, -1, cmp)
-                 - suf.begin();
-            ed = upper_bound(suf.begin() + st, suf.begin() + ed, -1, cmp)
-                 - suf.begin();
-        }
-        return {st,ed-1};
+
+    int LCP(int i, int j) {
+        if (i == j) return n - i - 1;
+        int l = order[i], r = order[j];
+        if (l > r) swap(l, r);
+        l++;
+        int sz = logs[r - l + 1];
+        return min(table[l][sz], table[r - (1 << sz) + 1][sz]);
+    }
+
+    int LCP_By_Order(int l, int r) {
+        if (l == r) return n - l - 1;
+        if (l > r) swap(l, r);
+        l++;
+        int sz = logs[r - l + 1];
+        return min(table[l][sz], table[r - (1 << sz) + 1][sz]);
+    }
+
+    int compare_substrings(int l1, int r1, int l2, int r2) {
+        int k = min({LCP(l1, l2), r1 - l1 + 1, r2 - l2 + 1});
+        l1 += k; l2 += k;
+        if (l1 > r1 && l2 > r2) return 0;
+        if (l1 > r1) return -1;
+        if (l2 > r2) return 1;
+        return (s[l1] > s[l2] ? 1 : -1);
     }
 };
 
 ll number_of_different_substrings(string s) {
     int n = s.size();
-    suffix_array sa(s);
+    SuffixArray sa(s);
     ll cnt = 0;
     for (int i = 0; i <= n; i++)
         cnt += n - sa.suf[i] - sa.lcp[i];
@@ -141,7 +113,7 @@ ll number_of_different_substrings(string s) {
 }
 
 string longest_common_substring(const string &s1, const string &s2) {
-    suffix_array sa(s1 + "#" + s2);
+    SuffixArray sa(s1 + "#" + s2);
     vector<int> suf = sa.suf, lcp = sa.lcp;
     auto type = [&](int idx) {
         return idx <= s1.size();
@@ -172,7 +144,7 @@ int longest_common_substring(const vector<string> &v) {
             j++;
         }
     }
-    suffix_array sa(s);
+    SuffixArray sa(s);
     vector<int> suf = sa.suf, lcp = sa.lcp;
     monoqueue q;
     int st = 0, ed = 0, cnt = 0, mx = 0;
@@ -195,7 +167,7 @@ int longest_common_substring(const vector<string> &v) {
 
 string kth_substring(string s, int k) {	//1-based,repated
     int n = s.size();
-    suffix_array sa(s);
+    SuffixArray sa(s);
     vector<int> suf = sa.suf, lcp = sa.lcp;
     for (int i = 1; i <= n; i++) {
         int len = n - suf[i];
@@ -205,7 +177,7 @@ string kth_substring(string s, int k) {	//1-based,repated
             int st = i + 1, ed = n, ans = i;
             while (st <= ed) {
                 int md = st + ed >> 1;
-                if (sa.LCP_by_order(i, md) >= l)
+                if (sa.LCP_By_Order(i, md) >= l)
                     st = md + 1, ans = md;
                 else
                     ed = md - 1;
@@ -216,5 +188,4 @@ string kth_substring(string s, int k) {	//1-based,repated
         }
         k -= len;
     }
-    assert(0);
 }
