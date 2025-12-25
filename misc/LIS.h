@@ -45,3 +45,15 @@ void LIS_binarySearch(vector<int> v) {
 	reverse(out.begin(), out.end());
 	for (auto it : out)cout << it << endl;
 }
+
+vector<int>LIS(vector<int>&v) {
+	int n = v.size();
+	vector<int>ret(n), lis;
+	for (int i = 0; i < n; i++) {
+		int id = lower_bound(lis.begin(), lis.end(), v[i]) - lis.begin();
+		if (id == lis.size()) lis.push_back(v[i]);
+		else lis[id] = v[i];
+		ret[i] = id + 1;
+	}
+	return ret;
+}

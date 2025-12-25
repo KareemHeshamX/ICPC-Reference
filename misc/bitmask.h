@@ -42,7 +42,7 @@ void genAllSubmask(int mask) {
 }
 /*
  * __builtin functions:
- *  __builtin_popcount -> used to count the number of one’s
+ *  __builtin_popcount -> used to count the number of ones
  *  __builtin_clz -> used to count the leading zeros of the integer
  *  __builtin_ctz -> used to count the trailing zeros of the integer
  *
