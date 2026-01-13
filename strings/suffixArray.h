@@ -76,21 +76,16 @@ struct SuffixArray {
         }
     }
 
-    int LCP(int i, int j) {
-        if (i == j) return n - i - 1;
-        int l = order[i], r = order[j];
-        if (l > r) swap(l, r);
-        l++;
-        int sz = logs[r - l + 1];
-        return min(table[l][sz], table[r - (1 << sz) + 1][sz]);
-    }
-
     int LCP_By_Order(int l, int r) {
         if (l == r) return n - l - 1;
         if (l > r) swap(l, r);
         l++;
         int sz = logs[r - l + 1];
         return min(table[l][sz], table[r - (1 << sz) + 1][sz]);
+    }
+
+    int LCP(int i, int j) {
+        return LCP_By_Order(order[i], order[j]);
     }
 
     int compare_substrings(int l1, int r1, int l2, int r2) {

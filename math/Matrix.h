@@ -28,7 +28,6 @@ struct matrix {
 		return (b * a);
 	}
 	friend matrix operator+(const matrix &a, const matrix &b) {
-		assert(a.size() == b.size() && a.cols() == b.cols());
 		matrix rt(a.size(), a.cols());
 		REP(i,rt.size())
 			REP(j,rt.cols())
@@ -36,7 +35,6 @@ struct matrix {
 		return rt;
 	}
 	friend matrix operator*(const matrix &a, const matrix &b) {
-		assert(a.cols() == b.size());
 		matrix rt(a.size(), b.cols());
 		REP(i,rt.size())
 			REP(k,a.cols())
@@ -65,7 +63,6 @@ matrix addIdentity(const matrix &a) {
 }
 
 matrix power(matrix a, long long y) {
-	assert(y >= 0 && a.size() == a.cols());
 	matrix rt = matId(a.size());
 	while (y > 0) {
 		if (y & 1)

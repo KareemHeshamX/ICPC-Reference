@@ -1,7 +1,8 @@
 
-int sqrtN; //use a constent value
+int sqrtN; // use a constant value
 struct query {
 	int l, r, qIdx, block;
+	query(){}
 	query(int l, int r, int qIdx) :
 			l(l), r(r), qIdx(qIdx), block(l / sqrtN) {
 	}
@@ -31,7 +32,7 @@ void solve(int l, int r) {
 vector<int> MO() {
 	vector<int> rt(q.size());
 	ans = curL = curR = 0;
-	add(0);//v[0]
+	add(0); // v[0]
 	sort(q.begin(), q.end());
 	for (auto it : q) {
 		solve(it.l, it.r);
