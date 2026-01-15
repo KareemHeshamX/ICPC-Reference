@@ -1,3 +1,13 @@
+vector<int> subsize;
+void getsize(int node, int par) {
+    subsize[node] = 1;
+    for (auto &child : adj[node]) {
+        if (child == par) continue;
+        getsize(child, node);
+        subsize[node] += subsize[child];
+    }
+}
+
 void add(int node, int par, int big);
 void remove(int node, int par, int big);
 
