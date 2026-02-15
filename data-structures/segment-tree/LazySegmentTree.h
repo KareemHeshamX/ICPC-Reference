@@ -9,14 +9,14 @@ struct LazySegTree {
     int n;
     vector<T> tree, lazy;
     function<T(const T&, const T&)> merge;
-    function<void(T&, const T&)> apply;
+    function<void(T&, const T&, bool)> apply;
     T neutral, no_lazy;
 
     // Constructor
     LazySegTree(int _n,
                 function<T(const T&, const T&)> _merge,
                 T _neutral,
-                function<void(T&, const T&)> _apply,
+                function<void(T&, const T&, bool)> _apply,
                 T _no_lazy)
         : n(_n), merge(_merge), apply(_apply), neutral(_neutral), no_lazy(_no_lazy) {
         tree.assign(4 * n, neutral);
@@ -59,10 +59,10 @@ private:
         if (lazy[idx] == no_lazy) return;
         int left = idx << 1, right = idx << 1 | 1;
         // Apply to children
-        apply(tree[left], lazy[idx]);
-        apply(lazy[left], lazy[idx]);
-        apply(tree[right], lazy[idx]);
-        apply(lazy[right], lazy[idx]);
+        apply(tree[left], lazy[idx], true);
+        apply(lazy[left], lazy[idx], false);
+        apply(tree[right], lazy[idx], true);
+        apply(lazy[right], lazy[idx]), false;
         // Clear current lazy
         lazy[idx] = no_lazy;
     }
@@ -70,8 +70,8 @@ private:
     void update(int idx, int L, int R, int l, int r, const T& val) {
         if (r < L || R < l) return;
         if (l <= L && R <= r) {
-            apply(tree[idx], val);
-            apply(lazy[idx], val);
+            apply(tree[idx], val, true);
+            apply(lazy[idx], val, false);
             return;
         }
         pushdown(idx, L, R);
