@@ -1,22 +1,16 @@
-// T: type of values
-// merge: function to combine two segments
-// apply: function to apply lazy value to a segment node
-// neutral: identity element for merge
-// no_lazy: identity element for lazy values
-
-template <typename T>
+template<typename T>
 struct LazySegTree {
     int n;
     vector<T> tree, lazy;
-    function<T(const T&, const T&)> merge;
-    function<void(T&, const T&, bool)> apply;
+    function<T(const T &, const T &)> merge;
+    function<void(T &, const T &, bool, int, int)> apply;
     T neutral, no_lazy;
 
     // Constructor
     LazySegTree(int _n,
-                function<T(const T&, const T&)> _merge,
+                function<T(const T &, const T &)> _merge,
                 T _neutral,
-                function<void(T&, const T&, bool)> _apply,
+                function<void(T &, const T &, bool, int, int)> _apply,
                 T _no_lazy)
         : n(_n), merge(_merge), apply(_apply), neutral(_neutral), no_lazy(_no_lazy) {
         tree.assign(4 * n, neutral);
@@ -24,17 +18,17 @@ struct LazySegTree {
     }
 
     // Build from initial vector
-    void build(const vector<T>& v) {
+    void build(const vector<T> &v) {
         build(1, 0, n - 1, v);
     }
 
     // Range update [l..r] with value val
-    void update(int l, int r, const T& val) {
+    void update(int l, int r, const T &val) {
         update(1, 0, n - 1, l, r, val);
     }
 
     // Point update: set position pos to value val
-    void update(int pos, const T& val) {
+    void update(int pos, const T &val) {
         update(1, 0, n - 1, pos, val);
     }
 
@@ -44,7 +38,7 @@ struct LazySegTree {
     }
 
 private:
-    void build(int idx, int L, int R, const vector<T>& v) {
+    void build(int idx, int L, int R, const vector<T> &v) {
         if (L == R) {
             tree[idx] = v[L];
         } else {
@@ -59,19 +53,19 @@ private:
         if (lazy[idx] == no_lazy) return;
         int left = idx << 1, right = idx << 1 | 1;
         // Apply to children
-        apply(tree[left], lazy[idx], true);
-        apply(lazy[left], lazy[idx], false);
-        apply(tree[right], lazy[idx], true);
-        apply(lazy[right], lazy[idx]), false;
+        apply(tree[left], lazy[idx], true, L, (L + R) >> 1);
+        apply(lazy[left], lazy[idx], false, L, (L + R) >> 1);
+        apply(tree[right], lazy[idx], true, (((L + R) >> 1) + 1), R);
+        apply(lazy[right], lazy[idx], false, (((L + R) >> 1) + 1), R);
         // Clear current lazy
         lazy[idx] = no_lazy;
     }
 
-    void update(int idx, int L, int R, int l, int r, const T& val) {
+    void update(int idx, int L, int R, int l, int r, const T &val) {
         if (r < L || R < l) return;
         if (l <= L && R <= r) {
-            apply(tree[idx], val, true);
-            apply(lazy[idx], val, false);
+            apply(tree[idx], val, true, L, R);
+            apply(lazy[idx], val, false, L, R);
             return;
         }
         pushdown(idx, L, R);
@@ -81,7 +75,7 @@ private:
         tree[idx] = merge(tree[idx << 1], tree[idx << 1 | 1]);
     }
 
-    void update(int idx, int L, int R, int pos, const T& val) {
+    void update(int idx, int L, int R, int pos, const T &val) {
         if (L == R) {
             tree[idx] = val;
             lazy[idx] = no_lazy;
@@ -89,10 +83,8 @@ private:
         }
         pushdown(idx, L, R);
         int mid = (L + R) >> 1;
-        if (pos <= mid)
-            update(idx << 1, L, mid, pos, val);
-        else
-            update(idx << 1 | 1, mid + 1, R, pos, val);
+        if (pos <= mid) update(idx << 1, L, mid, pos, val);
+        else update(idx << 1 | 1, mid + 1, R, pos, val);
         tree[idx] = merge(tree[idx << 1], tree[idx << 1 | 1]);
     }
 
