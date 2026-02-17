@@ -1,14 +1,5 @@
 #define ll long long
 
-ll power(ll x, ll y, int mod) {
-	if (y == 0)
-		return 1;
-	if (y == 1)
-		return x % mod;
-	ll r = power(x, y >> 1, mod);
-	return (((r * r) % mod) * power(x, y & 1, mod)) % mod;
-}
-
 // return a ^ 1 + a ^ 2 + a ^ 3 + .... a ^ k
 ll sumPower(ll a, ll k, int mod) {
 	if (k == 1) return a % mod;
@@ -17,6 +8,15 @@ ll sumPower(ll a, ll k, int mod) {
 	p = (p + half) % mod;
 	if (k & 1) p = (p + power(a, k, mod)) % mod;
 	return p;
+}
+
+ll power(ll x, ll y, int mod) {
+	if (y == 0)
+		return 1;
+	if (y == 1)
+		return x % mod;
+	ll r = power(x, y >> 1, mod);
+	return (((r * r) % mod) * power(x, y & 1, mod)) % mod;
 }
 
 ll modInverse(ll b, ll mod) { // if mod is Prime
