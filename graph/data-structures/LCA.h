@@ -15,7 +15,7 @@ class LCA {
 				dfs(child, node);
 	}
 public:
-	LCA(const vector<vector<int>> &_adj, int root = 1) :
+	LCA(const vector<vector<int>> &_adj, int root =1) :
 			root(root), adj(_adj) {
 		adj = _adj;
 		n = adj.size() - 1;
@@ -43,6 +43,7 @@ public:
 	int get_distance(int u, int v) {
 		return depth[u] + depth[v] - 2 * depth[get_LCA(u, v)];
 	}
+    //Do you even lift, bro?
 	int kth_ancestor(int node, int dist) {
 		for (int i = logN; i >= 0 && ~node; i--)
 			if (dist & (1 << i))
