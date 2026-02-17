@@ -1,7 +1,23 @@
-#define ll long long
+ll power(ll x, ll y, int mod = 1e9 + 7) {
+	ll ans = x;
+	while (y) {
+		if (y & 1) ans = (ans * x) % mod;
+		x = (x * x) % mod;
+		y >>= 1;
+	}
+	return ans;
+}
+
+ll modInverse(ll b, ll mod = 1e9 + 7) {
+	return power(b, mod - 2, mod);
+}
+
+ll modInverse(ll b, ll mod = 1e9 + 7) { // if mod is not Prime,gcd(a,b) must be equal 1
+	return power(b, phi_function(mod) - 1, mod);
+}
 
 // return a ^ 1 + a ^ 2 + a ^ 3 + .... a ^ k
-ll sumPower(ll a, ll k, int mod) {
+ll sumPower(ll a, ll k, int mod = 1e9 + 7) {
 	if (k == 1) return a % mod;
 	ll half = sumPower(a, k / 2, mod);
 	ll p = half * power(a, k / 2, mod) % mod;
@@ -10,25 +26,8 @@ ll sumPower(ll a, ll k, int mod) {
 	return p;
 }
 
-ll power(ll x, ll y, int mod) {
-	if (y == 0)
-		return 1;
-	if (y == 1)
-		return x % mod;
-	ll r = power(x, y >> 1, mod);
-	return (((r * r) % mod) * power(x, y & 1, mod)) % mod;
-}
-
-ll modInverse(ll b, ll mod) { // if mod is Prime
-	return power(b, mod - 2, mod);
-}
-
-ll modInverse(ll b, ll mod) { // if mod is not Prime,gcd(a,b) must be equal 1
-	return power(b, phi_function(mod) - 1, mod);
-}
-
 // (a^n)%p=result,return n
-int getPower(int a, int result, int mod) {
+int getPower(int a, int result, int mod = 1e9 + 7) {
 	int sq = sqrt(mod);
 	map<int, int> mp;
 	ll r = 1;
