@@ -28,7 +28,7 @@ public:
 			if (depth[x] - (1 << k) >= depth[y]) x = lca[k][x];
 		if (x == y) return x;
 		for (int k = logN; k >= 0; k--) {
-			if (lca[x][k] != lca[y][k]) {
+			if (lca[k][x] != lca[k][y]) {
 				x = lca[k][x];
 				y = lca[k][y];
 			}
@@ -38,19 +38,10 @@ public:
 	int get_distance(int u, int v) {
 		return depth[u] + depth[v] - 2 * depth[get_LCA(u, v)];
 	}
-    //Do you even lift, bro?
+	//Do you even lift, bro?
 	int kth_ancestor(int node, int dist) {
 		for (int i = logN; i >= 0 && ~node; i--)
 			if (dist & (1 << i)) node = lca[i][node];
 		return node;
-	}
-	edge get_path(int u, int LCA) {
-		edge rt;
-		for (int k = logN; k >= 0; k--)
-			if (depth[u] - (1 << k) >= depth[LCA]) {
-				rt = merge(rt, lca[k][u]);
-				u = lca[k][u].to;
-			}
-		return rt;
 	}
 };
