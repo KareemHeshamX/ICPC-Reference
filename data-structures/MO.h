@@ -1,42 +1,37 @@
-
-int sqrtN; // use a constant value
-struct query {
-	int l, r, qIdx, block;
-	query(){}
-	query(int l, int r, int qIdx) :
-			l(l), r(r), qIdx(qIdx), block(l / sqrtN) {
+struct MO {
+	int n, sq;
+	int curAns;
+	MO(int n_) : n(n_), sq((int)sqrt(n_)) {}
+	struct query {
+		int l, r, qIdx, blockId;
+		query(int l_, int r_, int id_, int sq_) :
+			l(l_), r(r_), qIdx(id_), blockId(l_ / sq_) {}
+		bool operator<(const query &other) {
+			if (blockId != other.blockId) return blockId < other.blockId;
+			return (blockId & 1 ? r < other.r : r > other.r);
+		}
+	};
+	vector<query> Q;
+	void addQuery(int l, int r, int id) {
+		Q.emplace_back(l, r, id, sq);
 	}
-	bool operator <(const query &o) const {
-		if (block != o.block)
-			return block < o.block;
-		return (block % 2 == 0 ? r < o.r : r > o.r);
+	void add(int idx) {}
+	void remove(int idx) {}
+	int curL, curR;
+	void solve_query(int l, int r) {
+		while (curL > l) add(--curL);
+		while (curR < r) add(++curR);
+		while (curL < l) remove(curL++);
+		while (curR > r) remove(curR--);
+	}
+	vector<int> process() {
+		vector<int> rt(Q.size());
+		sort(Q.begin(), Q.end());
+		curL = 1, curR = 0, curAns = 0;
+		for (auto &it : Q) {
+			solve_query(it.l, it.r);
+			rt[it.qIdx] = curAns;
+		}
+		return rt;
 	}
 };
-
-int curL, curR, ans;
-vector<query> q;
-void add(int index);
-void remove(int index);
-
-void solve(int l, int r) {
-	while (curL > l)
-		add(--curL);
-	while (curR < r)
-		add(++curR);
-	while (curL < l)
-		remove(curL++);
-	while (curR > r)
-		remove(curR--);
-}
-
-vector<int> MO() {
-	vector<int> rt(q.size());
-	ans = curL = curR = 0;
-	add(0); // v[0]
-	sort(q.begin(), q.end());
-	for (auto it : q) {
-		solve(it.l, it.r);
-		rt[it.qIdx] = ans;
-	}
-	return rt;
-}
