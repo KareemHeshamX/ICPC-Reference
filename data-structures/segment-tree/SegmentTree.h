@@ -32,7 +32,7 @@ private:
     }
     void update(int idx, int L, int R, int pos, const T& val) {
         if (L == R) {
-            tree[idx].val = val;
+            tree[idx] = val;
             return;
         }
         int mid = (L + R) >> 1;
