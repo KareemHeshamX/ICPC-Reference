@@ -1,5 +1,5 @@
 ll power(ll x, ll y, int mod = 1e9 + 7) {
-	ll ans = x;
+	ll ans = 1;
 	while (y) {
 		if (y & 1) ans = (ans * x) % mod;
 		x = (x * x) % mod;
