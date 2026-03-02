@@ -34,8 +34,7 @@ struct xor_basis {
     bool contains(int mask, int L) {
         for (int i = LOG_A; i >= 0; i--) {
             if ((mask >> i)) {
-                if (!basis[i]) return false;
-                if (pos[i] < L)return false;
+                if (!basis[i] || pos[i] < L) return false;
                 mask ^= basis[i];
             }
         }
