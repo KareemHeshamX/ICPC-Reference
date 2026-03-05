@@ -22,7 +22,7 @@ struct xor_basis {
                     reduced = false;
                     return;
                 }
-                if (pos[i] < idx) {
+                if (pos[i] > idx) {
                     swap(mask, basis[i]);
                     swap(idx, pos[i]);
                 }
@@ -34,14 +34,14 @@ struct xor_basis {
     bool contains(int mask, int L) {
         for (int i = LOG_A; i >= 0; i--) {
             if ((mask >> i)) {
-                if (!basis[i] || pos[i] < L) return false;
+                if (!basis[i] || pos[i] > L) return false;
                 mask ^= basis[i];
             }
         }
         return mask == 0;
     }
 
-    int max_xor(int start_val = 0) {
+    int max_xor(int start_val) {
         int res = start_val;
         for (int i = LOG_A; i >= 0; i--) {
             if (basis[i]) {
@@ -51,7 +51,7 @@ struct xor_basis {
         return res;
     }
 
-    int min_xor(int start_val = 0) {
+    int min_xor(int start_val) {
         int res = start_val;
         for (int i = LOG_A; i >= 0; i--) {
             if (basis[i]) {
