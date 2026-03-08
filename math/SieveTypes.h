@@ -68,19 +68,27 @@ void generate_divisors()
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// segmented_sieve --> get primes in range ex(1e9:1e9+1e6) o[(r-l)*loglog(r)+ o(sieve)]
-//  rمتنساش تستخدم سيف قبله لحد جذر ال
+// Generate all primes from l to r using segmented sieve in O((r - l) log (r) + sqrt(r))
 
- const int N=1e5+5;
- bool composite[N];
-void segmented_sieve()
-{
-	for(auto i:primes)
-	{
-		for(int j=max(i*i,(l+i-1)/i*i);j<=r;j+=i)
-	     	composite[j-l]=1;                   // متسناش تنقص وانت بتسأل
+vector<ll> segmented_sieve(ll l, ll r) {
+	if (l == 1) l++;
+	int limit = sqrtl(r);
+	while ((ll) limit * limit <= r) limit++;
+	while ((ll) limit * limit > r) limit--;
+	vector<bool> is_prime(r - l + 1, true);
+	for (ll p : prime) {
+		ll start = max((ll)p * p, (ll)(l + p - 1) / p * p);
+		for (ll j = start; j <= r; j += p) {
+			is_prime[j - l] = false;
+		}
 	}
-	if(l==1)composite[0]=1;
+	vector<ll> vec;
+	for (ll i = l; i <= r; ++i) {
+		if (is_prime[i - l]) {
+			vec.push_back(i);
+		}
+	}
+	return vec;
 }
 
 
