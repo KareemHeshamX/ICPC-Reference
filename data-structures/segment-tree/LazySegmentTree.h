@@ -4,7 +4,8 @@ struct LazySegTree {
     vector<T1> tree;
     vector<T2> lazy;
     function<T1(const T1 &, const T1 &)> merge;
-    function<void(T1 &, const T2 &, bool, int, int)> apply;
+    function<void(T1 &, const T2 &, int, int)> apply1;
+    function<void(T2 &, const T2 &)> apply2;
     T1 neutral;
     T2 no_lazy;
 
@@ -12,9 +13,10 @@ struct LazySegTree {
     LazySegTree(int _n,
                 function<T1(const T1 &, const T1 &)> _merge,
                 T1 _neutral,
-                function<void(T1 &, const T2 &, bool, int, int)> _apply,
+                function<void(T1 &, const T2 &, int, int)> _apply1,
+                function<void(T2 &, const T2 &)> _apply2,
                 T2 _no_lazy)
-        : n(_n), merge(_merge), apply(_apply), neutral(_neutral), no_lazy(_no_lazy) {
+        : n(_n), merge(_merge), apply1(_apply1), apply2(_apply2), neutral(_neutral), no_lazy(_no_lazy) {
         tree.assign(4 * n, neutral);
         lazy.assign(4 * n, no_lazy);
     }
@@ -50,10 +52,10 @@ private:
         if (lazy[idx] == no_lazy) return;
         int left = idx << 1, right = idx << 1 | 1;
         // Apply to children
-        apply(tree[left], lazy[idx], true, L, (L + R) >> 1);
-        apply(lazy[left], lazy[idx], false, L, (L + R) >> 1);
-        apply(tree[right], lazy[idx], true, (((L + R) >> 1) + 1), R);
-        apply(lazy[right], lazy[idx], false, (((L + R) >> 1) + 1), R);
+        apply1(tree[left], lazy[idx], L, (L + R) >> 1);
+        apply2(lazy[left], lazy[idx]);
+        apply1(tree[right], lazy[idx], (((L + R) >> 1) + 1), R);
+        apply2(lazy[right], lazy[idx]);
         // Clear current lazy
         lazy[idx] = no_lazy;
     }
@@ -61,8 +63,8 @@ private:
     void update(int idx, int L, int R, int l, int r, const T2 &val) {
         if (r < L || R < l) return;
         if (l <= L && R <= r) {
-            apply(tree[idx], val, true, L, R);
-            apply(lazy[idx], val, false, L, R);
+            apply1(tree[idx], val, L, R);
+            apply2(lazy[idx], val);
             return;
         }
         pushdown(idx, L, R);
