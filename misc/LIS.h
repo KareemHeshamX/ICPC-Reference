@@ -48,12 +48,23 @@ void LIS_binarySearch(vector<int> v) {
 
 vector<int>LIS(vector<int>&v) {
 	int n = v.size();
-	vector<int>ret(n), lis;
+	vector<int>ret(n), ret2(n), lis, lis2;
+	// ret[i] -> LIS ending at i
+	// ret2[i] -> LIS starting from i
+	vector<int>rev = v;
+	reverse(rev.begin(), rev.end());
+	for (auto &it:rev) it *= -1;
 	for (int i = 0; i < n; i++) {
 		int id = lower_bound(lis.begin(), lis.end(), v[i]) - lis.begin();
 		if (id == lis.size()) lis.push_back(v[i]);
 		else lis[id] = v[i];
 		ret[i] = id + 1;
+
+		int id2 = lower_bound(lis2.begin(), lis2.end(), rev[i]) - lis2.begin();
+		if (id2 == lis2.size()) lis2.push_back(rev[i]);
+		else lis2[id2] = rev[i];
+		ret2[i] = id2 + 1;
 	}
+	reverse(ret2.begin(), ret2.end())
 	return ret;
 }
