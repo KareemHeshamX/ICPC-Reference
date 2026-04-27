@@ -6,7 +6,7 @@ for (int x = 0; x < (1 << n); x++) {
     dp[x][0] = a[x];
     for (int i = 0; i < n; i++) {
         dp[x][i + 1] = dp[x][i];
-        if (x & (1 << i)) { dp[x][i + 1] += dp[x ^ (1 << i)][i]; }
+        if (x >> i & 1) { dp[x][i + 1] += dp[x ^ (1 << i)][i]; }
     }
     sos[x] = dp[x][n];
 }
@@ -14,6 +14,6 @@ for (int x = 0; x < (1 << n); x++) {
 sos = a;
 for (int i = 0; i < n; i++) {
     for (int x = 0; x < (1 << n); x++) {
-        if (x & (1 << i)) { sos[x] += sos[x ^ (1 << i)]; }
+        if (x >> i & 1) { sos[x] += sos[x ^ (1 << i)]; }
     }
 }
