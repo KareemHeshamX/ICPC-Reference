@@ -1,5 +1,3 @@
-
-
 struct suffix_automaton {
 	struct state {
 		int len, link = 0, cnt = 0;
@@ -79,7 +77,7 @@ struct suffix_automaton {
 		return rt;
 	}
 	//1-based,different substring,0 = ""
-	string kth_substring(ll k) { 
+	string kth_substring(ll k) {
 		assert(k <= Count(0));
 		string rt;
 		int cur = 0;
