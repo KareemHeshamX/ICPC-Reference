@@ -1,33 +1,34 @@
 struct Node {
-	int val = 1;
+	int val = 0;
+	Node(int v = 0) : val(v) {}
 } neutral;
+
+Node merge(Node a, Node b) {
+	Node ret;
+	ret.val = (a.val + b.val);
+}
 
 struct segtree {
 	segtree *left = nullptr, *right = nullptr;
-
-	Node node = {};
-
+	Node node;
 	int start, end;
 
 	segtree(int l = 0, int r = 0) : start(l), end(r) {}
 
 	void extend() {
 		if (left == nullptr) {
-			int mid = start + end >> 1;
+			int mid = (start + end) >> 1; // Added parentheses for safety
 			left = new segtree(start, mid);
 			right = new segtree(mid + 1, end);
 		}
 	}
 
 	Node pushup(Node a, Node b) {
-		Node ret;
-		ret.val = a.val + b.val;
-		return ret;
+		return merge(a, b);
 	}
 
 	void update(int idx, int val) {
-		if (start > idx || end < idx)
-			return;
+		if (start > idx || end < idx) return;
 		if (start == end) {
 			node.val = val;
 			return;
@@ -39,18 +40,16 @@ struct segtree {
 	}
 
 	Node query(int l, int r) {
-		if (r < start || end < l)
-			return neutral;
+		if (r < start || end < l) return neutral;
 		extend();
-		if (l <= start && end <= r)
-			return node;
-		Node ret = pushup(left->query(l , r), right->query(l , r));
-		return ret;
+		if (l <= start && end <= r) return node;
+		return pushup(left->query(l, r), right->query(l, r));
 	}
 
 	~segtree() {
-		if (left == nullptr)return;
-		delete left;
-		delete right;
+		if (left != nullptr) {
+			delete left;
+			delete right;
+		}
 	}
 };
