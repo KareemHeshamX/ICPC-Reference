@@ -159,6 +159,19 @@ struct HLD {
         update_node(edge_node[edge_idx], c);
     }
 
+    void update_path(int u, int v, int c) {
+        for (; head[u] != head[v]; v = par[head[v]]) {
+            if (depth[head[u]] > depth[head[v]]) swap(u, v);
+            seg->update(pos_array[head[v]], pos_array[v], c);
+        }
+        if (depth[u] > depth[v]) swap(u, v);
+        // value_on_edge natively acts as an integer:
+        // 1 (true) skips the LCA node, 0 (false) includes the LCA node!
+        if (pos_array[u] + value_on_edge <= pos_array[v]) {
+            seg->update(pos_array[u] + value_on_edge, pos_array[v], c);
+        }
+    }
+
     ~HLD() {
         delete seg;
     }
