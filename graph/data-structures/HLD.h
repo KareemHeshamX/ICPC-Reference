@@ -1,17 +1,43 @@
-// 1-based,if value in node,just update it after build chains 
+// 1-based,if value in node,just update it after build chains
 // don't forget to call build_chains after add edges.
 
-class heavy_light_decomposition { 
+class HLD {
 	int n, is_value_in_edge;
 	vector<int> parent, depth, heavy, root, pos_in_array, pos_to_node, size;
-	const static int merge(int a, int b); //implement it
-	struct array_ds { //implement it
+	struct node {
+		int b = -1e9, w = b;
+		node() {}
+		node (int _w, int _b) : b(_b), w(_w) {}
+		const node operator+(const node &other) const {
+			node ret = {b + other.b, w + other.w};
+			return ret;
+		};
+		node (node &x, node &y) {b = x.b + y.b, w = x.w + y.w;}
+	};
+	struct segment_tree {
 		int n;
-		array_ds(int n) :
-				n(n) {
+		vector<node> tree;
+		node neutral;
+		node merge (node &a, node &b) {return a + b;}
+
+		segment_tree() {}
+		segment_tree(int _n) : n(1 << (__bit_width(_n))), tree(2 * n, neutral) {}
+
+		void update(int k, node x) {
+			(tree[k += n] = x);
+			for (k /= 2; k >= 1; k /= 2) {
+				tree[k] = merge(tree[2 * k], tree[2 * k + 1]);
+			}
 		}
-		void update(int pos, int value);
-		int query(int l, int r);
+
+		node query(int l, int r) {
+			node ansl = neutral, ansr = neutral;
+			for (l += n, r += n; l <= r; l /= 2, r /= 2) {
+				if (l & 1) ansl = merge(ansl, tree[l++]);
+				if (!(r & 1)) ansr = merge(tree[r--], ansr);
+			}
+			return merge(ansl, ansr);
+		}
 	} seg;
 	struct TREE {
 		int cnt_edges = 1;
@@ -67,7 +93,7 @@ class heavy_light_decomposition {
 		if (!is_value_in_edge || u != v)
 			tmp[idx].push_back( { pos_in_array[u] + is_value_in_edge,
 					pos_in_array[v] });
-		reverse(all(tmp[1]));
+		reverse(tmp[1].begin(), tmp[1].end());
 		vector<tuple<int, int, bool>> rt;
 		for (int i = 0; i < 2; i++)
 			for (auto &it : tmp[i])
@@ -75,7 +101,7 @@ class heavy_light_decomposition {
 		return rt; //u is LCA
 	}
 public:
-	heavy_light_decomposition(int n, bool is_value_in_edge) :
+	HLD(int n, bool is_value_in_edge) :
 			n(n), is_value_in_edge(is_value_in_edge), seg(n + 1), tree(n + 1) {
 		heavy = vector<int>(n + 1, -1);
 		parent = depth = root = pos_in_array = pos_to_node = size = vector<int>(
@@ -98,13 +124,13 @@ public:
 		}
 		if (is_value_in_edge)
 			for (int i = 1; i < n; i++)
-				update_edge(i, tree.edge_cost[i]);
+				update_edge(i, tree.edge_cost[i], -1e9);
 	}
-	void update_node(int node, int value) {
-		seg.update(pos_in_array[node], value);
+	void update_node(int node, int val1, int val2) {
+		seg.update(pos_in_array[node], {val1, val2});
 	}
-	void update_edge(int edge_idx, int value) {
-		update_node(tree.edge_to[edge_idx], value);
+	void update_edge(int edge_idx, int val1, int val2) {
+		update_node(tree.edge_to[edge_idx], val1, val2);
 	}
 	void update_path(int u, int v, ll c) {
 		vector<tuple<int, int, bool>> intervals = get_path(u, v);
@@ -114,7 +140,7 @@ public:
 	node query_in_path(int u, int v) {
 		vector<tuple<int, int, bool>> intervals = get_path(u, v);
 		//initial value,check if handling u == v
-		node query_res = 0;
+		node query_res;
 		for (auto &it : intervals) {
 			int l, r;
 			bool rev;
