@@ -133,21 +133,44 @@ struct HLD {
     }
 
     Node query(int u, int v) {
-        Node ans = neutral;
-        for (; head[u] != head[v]; v = par[head[v]]) {
-            if (depth[head[u]] > depth[head[v]]) swap(u, v);
-            Node cur = seg->query(pos_array[head[v]], pos_array[v]);
-            ans = seg->pushup(ans, cur);
-        }
-        if (depth[u] > depth[v]) swap(u, v);
+        Node ansL = neutral; // Path going UP from u to LCA
+        Node ansR = neutral; // Path going DOWN from LCA to v
 
-        // value_on_edge natively acts as an integer:
-        // 1 (true) skips the LCA node, 0 (false) includes the LCA node!
-        if (pos_array[u] + value_on_edge <= pos_array[v]) {
-            Node last_chain = seg->query(pos_array[u] + value_on_edge, pos_array[v]);
-            ans = seg->pushup(ans, last_chain);
+        while (head[u] != head[v]) {
+            if (depth[head[u]] > depth[head[v]]) {
+                // Jumping u UP
+                Node cur = seg.query(pos_array[head[u]], pos_array[u]);
+                // Reverse the segment because we are walking bottom-up
+                swap(cur.prf, cur.suf);
+                ansL = merge(ansL, cur); // Append to the u-path
+                u = par[head[u]];
+            } else {
+                // Jumping v UP
+                Node cur = seg.query(pos_array[head[v]], pos_array[v]);
+                // We are walking top-down from LCA to v, so prepend to the v-path
+                ansR = merge(cur, ansR);
+                v = par[head[v]];
+            }
         }
-        return ans;
+
+        // Handle the final chain containing the LCA
+        if (depth[u] > depth[v]) {
+            // Remaining path is u UP to v (v is the LCA)
+            if (pos_array[v] + value_on_edge <= pos_array[u]) {
+                Node cur = seg.query(pos_array[v] + value_on_edge, pos_array[u]);
+                swap(cur.prf, cur.suf); // Reverse because we go bottom-up
+                ansL = merge(ansL, cur);
+            }
+        } else {
+            // Remaining path is u DOWN to v (u is the LCA)
+            if (pos_array[u] + value_on_edge <= pos_array[v]) {
+                Node cur = seg.query(pos_array[u] + value_on_edge, pos_array[v]);
+                ansR = merge(cur, ansR); // No reverse needed for top-down
+            }
+        }
+
+        // Combine the UP path and the DOWN path
+        return merge(ansL, ansR);
     }
 
     void update_node(int u, int c) {
