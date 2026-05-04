@@ -57,7 +57,7 @@ struct segtree {
 struct HLD {
     int n;
     vector<int> par, depth, heavy, head, cnt, pos_array, pos_node, val, edge_node;
-    vector<vector<int>> adj; // Standardized to simple unweighted adjacency list internally
+    vector<vector<int>> adj;
     bool value_on_edge = false;
     segtree* seg;
 
@@ -116,7 +116,7 @@ struct HLD {
 
     void decompose(int root = 1) {
         dfs_hld(root);
-        int nxt = 1; // FIX: Changed from 0 to 1 because segtree is built from 1 to n
+        int nxt = 1;
         for (int chain_root = 1; chain_root <= n; chain_root++) {
             if (par[chain_root] == -1 || heavy[par[chain_root]] != chain_root) {
                 for (int ch = chain_root; ~ch; ch = heavy[ch]) {
@@ -139,14 +139,14 @@ struct HLD {
         while (head[u] != head[v]) {
             if (depth[head[u]] > depth[head[v]]) {
                 // Jumping u UP
-                Node cur = seg.query(pos_array[head[u]], pos_array[u]);
+                Node cur = seg->query(pos_array[head[u]], pos_array[u]);
                 // Reverse the segment because we are walking bottom-up
-                swap(cur.prf, cur.suf);
+                // swap(cur.prf, cur.suf);
                 ansL = merge(ansL, cur); // Append to the u-path
                 u = par[head[u]];
             } else {
                 // Jumping v UP
-                Node cur = seg.query(pos_array[head[v]], pos_array[v]);
+                Node cur = seg->query(pos_array[head[v]], pos_array[v]);
                 // We are walking top-down from LCA to v, so prepend to the v-path
                 ansR = merge(cur, ansR);
                 v = par[head[v]];
@@ -157,14 +157,14 @@ struct HLD {
         if (depth[u] > depth[v]) {
             // Remaining path is u UP to v (v is the LCA)
             if (pos_array[v] + value_on_edge <= pos_array[u]) {
-                Node cur = seg.query(pos_array[v] + value_on_edge, pos_array[u]);
-                swap(cur.prf, cur.suf); // Reverse because we go bottom-up
+                Node cur = seg->query(pos_array[v] + value_on_edge, pos_array[u]);
+                // swap(cur.prf, cur.suf); // Reverse because we go bottom-up
                 ansL = merge(ansL, cur);
             }
         } else {
             // Remaining path is u DOWN to v (u is the LCA)
             if (pos_array[u] + value_on_edge <= pos_array[v]) {
-                Node cur = seg.query(pos_array[u] + value_on_edge, pos_array[v]);
+                Node cur = seg->query(pos_array[u] + value_on_edge, pos_array[v]);
                 ansR = merge(cur, ansR); // No reverse needed for top-down
             }
         }
@@ -178,7 +178,7 @@ struct HLD {
     }
 
     void update_edge(int edge_idx, int c) {
-        if (!value_on_edge) return; // Safeguard
+        if (!value_on_edge) return;
         update_node(edge_node[edge_idx], c);
     }
 
@@ -188,8 +188,6 @@ struct HLD {
             seg->update(pos_array[head[v]], pos_array[v], c);
         }
         if (depth[u] > depth[v]) swap(u, v);
-        // value_on_edge natively acts as an integer:
-        // 1 (true) skips the LCA node, 0 (false) includes the LCA node!
         if (pos_array[u] + value_on_edge <= pos_array[v]) {
             seg->update(pos_array[u] + value_on_edge, pos_array[v], c);
         }
