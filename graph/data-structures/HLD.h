@@ -6,6 +6,7 @@ struct Node {
 Node merge(Node a, Node b) {
     Node ret;
     ret.val = (a.val + b.val);
+    return ret;
 }
 
 struct segtree {
