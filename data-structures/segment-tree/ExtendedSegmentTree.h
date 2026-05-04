@@ -1,64 +1,56 @@
+struct Node {
+	int val = 1;
+} neutral;
+
 struct segtree {
 	segtree *left = nullptr, *right = nullptr;
-	int mx = 0;
-	segtree(int val = 0) :
-			mx(val) {
-	}
+
+	Node node = {};
+
+	int start, end;
+
+	segtree(int l = 0, int r = 0) : start(l), end(r) {}
+
 	void extend() {
 		if (left == nullptr) {
-			left = new segtree();
-			right = new segtree();
+			int mid = start + end >> 1;
+			left = new segtree(start, mid);
+			right = new segtree(mid + 1, end);
 		}
 	}
-	void pushup() {
-		mx = max(left->mx, right->mx);
+
+	Node pushup(Node a, Node b) {
+		Node ret;
+		ret.val = a.val + b.val;
+		return ret;
 	}
+
+	void update(int idx, int val) {
+		if (start > idx || end < idx)
+			return;
+		if (start == end) {
+			node.val = val;
+			return;
+		}
+		extend();
+		left->update(idx, val);
+		right->update(idx, val);
+		node = pushup(left->node, right->node);
+	}
+
+	Node query(int l, int r) {
+		if (r < start || end < l)
+			return neutral;
+		extend();
+		if (l <= start && end <= r)
+			return node;
+		Node ret = pushup(left->query(l , r), right->query(l , r));
+		return ret;
+	}
+
 	~segtree() {
 		if (left == nullptr)return;
 		delete left;
 		delete right;
 	}
-};
-
-class extened_segment_tree {
-#define MID ((start+end)>>1)
-	void update(segtree *root, int start, int end, int pos, int val) {
-		if (pos < start || end < pos)
-			return;
-		if (start == end) {
-			root->mx = max(root->mx, val);
-			return;
-		}
-		root->extend();
-		update(root->left, start, MID, pos, val);
-		update(root->right, MID + 1, end, pos, val);
-		root->pushup();
-	}
-	int query(segtree *root, int start, int end, int l, int r) {
-		if (root == nullptr || r < start || end < l)
-			return 0;
-		if (l <= start && end <= r)
-			return root->mx;
-		return max(query(root->left, start, MID, l, r),
-				query(root->right, MID + 1, end, l, r));
-	}
-public:
-	int start, end;
-	segtree *root;
-	extened_segment_tree() {
-	}
-	~extened_segment_tree() {
-		delete root;
-	}
-	extened_segment_tree(int start, int end) :
-			start(start), end(end) {
-		root = new segtree();
-	}
-	void update(int pos, int val) {
-		update(root, start, end, pos, val);
-	}
-	int query(int l, int r) {
-		return query(root, start, end, l, r);
-	}
-#undef MID
 };
