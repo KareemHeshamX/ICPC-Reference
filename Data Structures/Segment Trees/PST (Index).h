@@ -1,8 +1,3 @@
-#include <bits/stdc++.h>
-using namespace std;
-
-using ll = long long;
-
 class PersistentSegtree {
   private:
 	struct Node {
@@ -67,35 +62,3 @@ class PersistentSegtree {
 		return timer++;
 	}
 };
-
-int main() {
-	int n, q;
-	cin >> n >> q;
-	vector<int> a(n);
-	for (int &i : a) { cin >> i; }
-
-	const int MX_NODES = 2 * n + q * (2 + __lg(n));
-	PersistentSegtree st(n, MX_NODES);
-
-	vector<int> roots = {st.build(a)};
-
-	for (int t = 0; t < q; t++) {
-		int type, k;
-		cin >> type >> k;
-		k--;
-
-		if (type == 1) {
-			int pos, val;
-			cin >> pos >> val;
-			pos--;
-			roots[k] = st.set(roots[k], pos, val);
-		} else if (type == 2) {
-			int a, b;
-			cin >> a >> b;
-			a--, b--;
-			cout << st.range_sum(roots[k], a, b) << '\n';
-		} else if (type == 3) {
-			roots.push_back(st.add_copy(roots[k]));
-		}
-	}
-}
