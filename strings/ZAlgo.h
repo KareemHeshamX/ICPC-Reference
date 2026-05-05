@@ -1,5 +1,4 @@
-
-// z[i] equal the length of the longest substring starting from s[i] which is also a prefix of s 
+// z[i] equal the length of the longest substring starting from s[i] which is also a prefix of s
 vector<int> z_algo(string s) {
 	int n = s.size();
 	vector<int> z(n);
