@@ -5,13 +5,29 @@ struct custom_hash {
 		x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
 		return x ^ (x >> 31);
 	}
-	size_t operator()(pair<uint64_t, uint64_t> x) const { // for pair 
+	size_t operator()(pair<uint64_t, uint64_t> x) const { // for pair
 		static const uint64_t FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
 		return splitmix64(x.first + FIXED_RANDOM) ^ (splitmix64(x.second + FIXED_RANDOM) >> 1);
 	}
-	
+
 	size_t operator()(uint64_t x) const { // for single element
 		static const uint64_t FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
 		return splitmix64(x + FIXED_RANDOM);
+	}
+
+	int operator()(vector<int> v) const {
+		int hash = (int)(v.size());
+		for(auto &i : v) {
+			hash ^= i + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+		}
+		return hash;
+	}
+
+	ll operator()(vector<ll> v) const {
+		ll hash = (int)(v.size());
+		for(auto &i : v) {
+			hash ^= i + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+		}
+		return hash;
 	}
 };
