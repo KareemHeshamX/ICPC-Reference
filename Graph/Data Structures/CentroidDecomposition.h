@@ -1,4 +1,3 @@
-using pii = pair<int,int>;
 struct Centroid { // 1-based
 	int n;
 	vector<int> siz, rank;
