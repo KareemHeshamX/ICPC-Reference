@@ -1,62 +1,79 @@
-int subsize[N], depth[N], dfs_num[N], id[N], have[N], timer, n;
-vector<vector<int>> adj;
+#define all(v) v.begin(), v.end()
 
-void calc(int node) {
-    dfs_num[node] = ++timer;
-    subsize[node] = 1;
-    for (auto ch: adj[node]) {
-        adj[ch].erase(find(all(adj[ch]), node));
-        depth[ch] = depth[node] + 1;
-        calc(ch);
-        subsize[node] += subsize[ch];
+struct VirtualTree{ // 1-based
+    int n, LG, id = -1, root;
+    vector<int> in, out, depth;
+    vector<vector<int>> adj, vt, up;
+
+    VirtualTree(vector<vector<int>> &adj, int root = 1)
+    : n(sz(adj)-1), adj(adj), vt(n+1), in(n+1), out(n+1), depth(n+1) {
+        LG = __lg(n) + 1;
+        up.resize(n+1, vector<int>(LG, root));
+        init(root, 0);
     }
-}
 
-bool parent(int node, int par) {
-    return dfs_num[par] <= dfs_num[node] && dfs_num[node] < dfs_num[par] + subsize[par];
-}
+    vector<int> operator[](int u) {return vt[u];}
 
-struct virtual_tree {
-    vector<int> nodes;
-    vector<vector<int>> adj;
+    void init(int u, int p){
+        for(int k=1; k<LG; k++)
+            up[u][k] = up[up[u][k-1]][k-1];
 
-    virtual_tree(const vector<int> &v) : nodes(v) {
-        for (auto &it: nodes) have[it] = true;
+        in[u] = ++id;
+        depth[u] = depth[p] + 1;
+        for(auto &v : adj[u]){
+            if(v == p)  continue;
+            up[v][0] = u;
+            init(v, u);
+        }
+        out[u] = id;
+    }
 
-        sort(all(nodes), [&](int a, int b) {
-            return dfs_num[a] < dfs_num[b];
+    inline bool upper(int u, int v){
+        return in[u] <= in[v] && out[v] <= out[u];
+    }
+
+    int lca(int u, int v){
+        if(upper(u, v)) return u;
+        if(upper(v, u)) return v;
+        for(int i = LG - 1; i >= 0; i--){
+            if(!upper(up[u][i], v))
+                u = up[u][i];
+        }
+        return up[u][0];
+    }
+
+    int build(vector<int> nodes){
+        sort(all(nodes), [&](int u, int v){
+            return in[u] < in[v];
         });
 
-        int tmp = nodes.size();
-        for (int j = 0; j + 1 < tmp; j++) {
-            int lca = tree.get_LCA(nodes[j], nodes[j + 1]);
-            nodes.push_back(lca);
-        }
-        nodes.push_back(1);
-        sort(all(nodes));
+        int k = sz(nodes);
+        for(int i=1; i<k; i++)
+            nodes.push_back(lca(nodes[i-1], nodes[i]));
+
+        sort(all(nodes), [&](int u, int v){
+            return in[u] < in[v];
+        });
         nodes.erase(unique(all(nodes)), nodes.end());
 
-        sort(all(nodes), [&](int a, int b) {
-            return dfs_num[a] < dfs_num[b];
-        });
-
-        int cnt = 0;
-        for (auto &it: nodes)id[it] = cnt++;
-
+        for(auto &u : nodes) vt[u].clear();
 
         stack<int> stk;
-        adj = vector<vector<int>>(cnt);
-        for (auto &it: nodes) {
-            while (!stk.empty() && !(parent(it, stk.top())))
-                stk.pop();
-            if (stk.size()) {
-                adj[id[stk.top()]].push_back(it); // it or id[it] ??
+        for(auto &u : nodes){
+            while(sz(stk) >= 2 && !upper(stk.top(), u)){
+                int v = stk.top();  stk.pop();
+                vt[stk.top()].push_back(v);
+                vt[v].push_back(stk.top());
             }
-            stk.push(it);
+            stk.push(u);
         }
-        dfs(1);
 
-        for (auto &it: nodes)have[it] = false;
+        while(sz(stk) >= 2){
+            int v = stk.top();  stk.pop();
+            vt[stk.top()].push_back(v);
+            vt[v].push_back(stk.top());
+        }
+
+        return root = stk.top();
     }
-    
 };
