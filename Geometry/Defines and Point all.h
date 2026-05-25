@@ -1,11 +1,12 @@
 #define ot long long
 #define ld long double
 #define sq(x) ((x)*(x))
-#define eps 1e-8
 #define angle(a) (atan2((a).y, (a).x))
 #define slope(p) (((p).y)/((p).x))
 #define vec(a, b) ((b)-(a))
 #define len(v) (hypotl((v).y, (v).x))
+
+const ld eps = 1e-12, PI = acosl(-1.0);
 
 struct P {
    ot x, y;
