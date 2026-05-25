@@ -52,8 +52,8 @@ struct P {
 
    //angle in radians
    P rotate(ot angle) const {
-      ot cos_theta = cos(angle);
-      ot sin_theta = sin(angle);
+      ot cos_theta = cosl(angle);
+      ot sin_theta = sinl(angle);
       return {x * cos_theta - y * sin_theta, x * sin_theta + y * cos_theta};
    }
 };
