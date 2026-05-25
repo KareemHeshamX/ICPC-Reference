@@ -126,3 +126,16 @@ P reflectPoint(P a, P b, P p) {
     P r = {2 * proj.x - p.x, 2 * proj.y - p.y};
     return r;
 }
+
+vector<P> circle_circle_intersection(P a, double r, P b, double R) {
+    if (a == b && sign(r - R) == 0) return {P(1e18, 1e18)};
+    vector<P> ret;
+    double d = len(vec(a,  b));
+    if (d > r + R || d + min(r,  R) < max(r,  R)) return ret;
+    double x = (d * d - R * R + r * r) / (2 * d);
+    double y = sqrt(r * r - x * x);
+    P v = (b - a) / d;
+    ret.push_back(a + v * x  +  v.rotate(PI/2) * y);
+    if (y > 0) ret.push_back(a + v * x - v.rotate(PI/2)  * y);
+    return ret;
+}
