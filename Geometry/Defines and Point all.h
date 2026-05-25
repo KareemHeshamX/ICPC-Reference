@@ -78,3 +78,11 @@ Line lineFromVector(P p, P v) {
 
    return L;
 }
+
+istream& operator>>(istream &in, P &p) {
+   return in >> p.x >> p.y;
+}
+
+ostream& operator<<(ostream &out, P &p) {
+   return out << p.x << ' ' << p.y;
+}

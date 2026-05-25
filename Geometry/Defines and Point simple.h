@@ -26,3 +26,11 @@ struct P {
       return x * he.x + y * he.y;
    }
 };
+
+istream& operator>>(istream &in, P &p) {
+   return in >> p.x >> p.y;
+}
+
+ostream& operator<<(ostream &out, P &p) {
+   return out << p.x << ' ' << p.y;
+}
