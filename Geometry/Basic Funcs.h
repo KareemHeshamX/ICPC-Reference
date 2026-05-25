@@ -131,7 +131,8 @@ vector<P> circle_circle_intersection(P a, ld r, P b, ld R) {
     if (a == b && sign(r - R) == 0) return {{1e18, 1e18}};
     vector<P> ret;
     ld d = len(vec(a,  b));
-    if (sign(d - (r + R)) > 0 || sign(d + min(r, R) - max(r, R)) < 0) return ret;    ld x = (d * d - R * R + r * r) / (2 * d);
+    if (sign(d - (r + R)) > 0 || sign(d + min(r, R) - max(r, R)) < 0) return ret;
+    ld x = (d * d - R * R + r * r) / (2 * d);
     ld y = sqrtl(max((ld)(0.0), r * r - x * x));
     P v = (b - a) / d;
     ret.push_back(a + v * x  +  v.rotate(PI/2) * y);
