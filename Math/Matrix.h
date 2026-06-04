@@ -1,101 +1,54 @@
-#define ll long long
-#define sz(s) (int)s.size()
-#define REP(i,n) for(int i = 0;i<n;i++)
-struct matrix {
-	using T = int;
-	using row = vector<T>;
-	vector<vector<T>> v;
-	matrix() {
+#include<bits/stdc++.h>
+using namespace std;
+const int MOD = 1e9 + 7;
 
-	}
-	matrix(int n, int m, T val = 0) :
-			v(n, row(m, val)) {
-	}
-	int size() const {
-		return v.size();
-	}
-	int cols() const {
-		return v[0].size();
-	}
-	matrix operator*(T a) const {
-		matrix rt = *this;
-		REP(i,rt.size())
-			REP(j,rt.cols())
-				rt.v[i][j] *= a;
-		return rt;
-	}
-	friend matrix operator*(T a, const matrix &b) {
-		return (b * a);
-	}
-	friend matrix operator+(const matrix &a, const matrix &b) {
-		matrix rt(a.size(), a.cols());
-		REP(i,rt.size())
-			REP(j,rt.cols())
-				rt.v[i][j] = a.v[i][j] + b.v[i][j];
-		return rt;
-	}
-	friend matrix operator*(const matrix &a, const matrix &b) {
-		matrix rt(a.size(), b.cols());
-		REP(i,rt.size())
-			REP(k,a.cols())
-			{
-				if (a.v[i][k] == 0)
-					continue;
-				REP(j,rt.cols())
-					rt.v[i][j] += a.v[i][k] * b.v[k][j];
-			}
-		return rt;
-	}
+struct Matrix {
+    vector<vector<int>> v;
+    int rows, cols;
+    Matrix() {}
+    Matrix(int r, int c, int val = 0) : rows(r), cols(c) {
+        v = vector<vector<int>> (r, vector<int>(c, val));
+    }
+    static Matrix Identity(int n) {
+        Matrix res(n, n);
+        for (int i = 0; i < n; i++) {
+            res.v[i][i] = 1;
+        }
+        return res;
+    }
+    Matrix operator+(const Matrix& other) const {
+        Matrix res(rows, cols);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                res.v[i][j] = (v[i][j] + other.v[i][j]) % MOD;
+            }
+        }
+        return res;
+    }
+    Matrix operator*(const Matrix& other) const {
+        Matrix res(rows, other.cols);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < other.cols; j++) {
+                for (int k = 0; k < cols; k++) {
+                    res.v[i][j] += (v[i][k] * other.v[k][j]) % MOD;
+                    res.v[i][j] %= MOD;
+                }
+            }
+        }
+        return res;
+    }
 };
-
-matrix matId(int n) {
-	matrix r(n, n);
-	for (int i = 0; i < n; i++)
-		r.v[i][i] = 1;
-	return r;
+Matrix power(Matrix m, int p) {
+    Matrix res = Matrix::Identity(m.rows);
+    while (p) {
+        if (p & 1) res = res * m;
+        m = m * m;
+        p >>= 1;
+    }
+    return res;
 }
-
-matrix addIdentity(const matrix &a) {
-	matrix rt = a;
-	REP(i,a.size())
-		rt.v[i][i]++;
-	return rt;
-}
-
-matrix power(matrix a, long long y) {
-	matrix rt = matId(a.size());
-	while (y > 0) {
-		if (y & 1)
-			rt = rt * a;
-		a = a * a;
-		y >>= 1;
-	}
-	return rt;
-}
-
-matrix sumPower(const matrix &a, ll k) {
-	if (k == 0)
-		return matrix(sz(a), sz(a));
-	if (k & 1)
-		return a * addIdentity(sumPower(a, k - 1));
-	return (sumPower(a, k >> 1) * addIdentity(power(a, k >> 1)));
-}
-
-/* return matrix contains
-	a^k         0
-a^1+a^2.. a^k   I
-*/
-
-matrix sumPowerV2(const matrix &a, ll k) {
-	int n = sz(a);
-	matrix rt(2 * n, 2 * n);
-	REP(i,n)
-		REP(j,n)
-		{
-			rt.v[i][j] = a.v[i][j];
-			rt.v[i + n][j] = a.v[i][j];
-		}
-	for (int i = n; i < 2 * n; i++)
-		rt.v[i][i] = 1;
-	return power(rt, k);
+Matrix sumPower(Matrix a, int k) {
+    if (k == 0) return Matrix(a.rows, a.cols, 0); 
+    if (k & 1) return a + (a * sumPower(a, k - 1));
+    return sumPower(a, k >> 1) + (sumPower(a, k >> 1) * power(a, k >> 1));
 }
