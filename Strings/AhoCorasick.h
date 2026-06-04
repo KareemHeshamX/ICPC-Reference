@@ -1,83 +1,78 @@
-#define all(v) v.begin(),v.end()
+struct AhoCorasick {
+    static const int alpha = 26;
+    char offset = 'a';
 
-struct aho_corasick {
-	struct trie_node {
-		vector<int> pIdxs; //probably take memory limit
-		map<char, int> next;
-		int fail;
-		trie_node() :
-				fail(0) {
-		}
-		bool have_next(char ch) {
-			return next.find(ch) != next.end();
-		}
-		int& operator[](char ch) {
-			return next[ch];
-		}
-	};
-	vector<trie_node> t;
-	vector<string> patterns;
-	vector<int> end_of_pattern;
-	vector<vector<int>> adj;
-	int insert(const string &s, int patternIdx) {
-		int root = 0;
-		for (const char &ch : s) {
-			if (!t[root].have_next(ch)) {
-				t.push_back(trie_node());
-				t[root][ch] = t.size() - 1;
-			}
-			root = t[root][ch];
-		}
-		t[root].pIdxs.push_back(patternIdx);
-		return root;
-	}
-	int next_state(int cur, char ch) {
-		while (cur > 0 && !t[cur].have_next(ch))
-			cur = t[cur].fail;
-		if (t[cur].have_next(ch))
-			return t[cur][ch];
-		return 0;
-	}
-	void buildAhoTree() {
-		queue<int> q;
-		for (auto &child : t[0].next)
-			q.push(child.second);
-		while (!q.empty()) {
-			int cur = q.front();
-			q.pop();
-			for (auto &child : t[cur].next) {
-				int k = next_state(t[cur].fail, child.first);
-				t[child.second].fail = k;
-				vector<int> &idxs = t[child.second].pIdxs;
-				//dp[child.second] = max(dp[child.second],dp[k]);
-				idxs.insert(idxs.end(), all(t[k].pIdxs));
-				q.push(child.second);
-			}
-		}
-	}
-	void buildFailureTree() {
-		adj = vector<vector<int>>(t.size());
-		for (int i = 1; i < t.size(); i++)
-			adj[t[i].fail].push_back(i);
-	}
-	aho_corasick(const vector<string> &_patterns) {
-		t.push_back(trie_node());
-		patterns = _patterns;
-		end_of_pattern = vector<int>(patterns.size());
-		for (int i = 0; i < patterns.size(); i++)
-			end_of_pattern[i] = insert(patterns[i], i);
-		buildAhoTree();
-		buildFailureTree();
-	}
-	vector<vector<int>> match(const string &str) {
-		int k = 0;
-		vector<vector<int>> rt(patterns.size());
-		for (int i = 0; i < str.size(); i++) {
-			k = next_state(k, str[i]);
-			for (auto &it : t[k].pIdxs)
-				rt[it].push_back(i);
-		}
-		return rt;
-	}
+    struct Node {
+        array<int, alpha> nxt{};
+        int fail = 0, idx = -1, up = 0;
+        Node(){ nxt.fill(-1); }
+    };
+
+    vector<Node> trie{Node()};
+    vector<int> pat_len;
+
+    int add_pattern(const string& s){
+        int cur = 0;
+        for(auto& ch : s){
+            int c = ch - offset;
+            if(trie[cur].nxt[c] == -1){
+                trie[cur].nxt[c] = (int)trie.size();
+                trie.emplace_back();
+            }
+            cur = trie[cur].nxt[c];
+        }
+        if(trie[cur].idx == -1){
+            trie[cur].idx = sz(pat_len);
+            pat_len.push_back(sz(s));
+        }
+        return trie[cur].idx;
+    }
+
+    int compF(int u, int c){
+        while(trie[u].nxt[c] == -1) u = trie[u].fail;
+        return trie[u].nxt[c];
+    }
+
+    int getNxt(int u){
+        if(!u) return u;
+        int& v = trie[u].up;
+        return (~trie[v].idx ? v : v = getNxt(v));
+    }
+
+    void buildAhoTree(){
+        queue<int> q;
+        for(int c = 0; c < alpha; ++c){
+            int u = trie[0].nxt[c];
+            if(u == -1) trie[0].nxt[c] = 0;
+            else{
+                trie[u].fail = 0;
+                q.push(u);
+            }
+        }
+        while(!q.empty()){
+            int u = q.front(); q.pop();
+            for(int c = 0; c < alpha; ++c){
+                int v = trie[u].nxt[c];
+                if(v == -1) continue;
+                trie[v].up = trie[v].fail = compF(trie[u].fail, c);
+                q.push(v);
+            }
+        }
+    }
+
+    vector<vector<int>> match(const string& s){
+        buildAhoTree();
+        vector<vector<int>> res(sz(pat_len));
+        int cur = 0;
+        for(int i = 0; i < sz(s); ++i){
+            int c = s[i] - offset;
+            cur = compF(cur, c);
+            for(int u = cur; u ; u = getNxt(u)){
+                if(trie[u].idx != -1){
+                    res[trie[u].idx].push_back(i - pat_len[trie[u].idx] + 1);
+                }
+            }
+        }
+        return res;
+    }
 };
-
