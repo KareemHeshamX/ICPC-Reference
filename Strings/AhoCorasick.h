@@ -1,6 +1,7 @@
 struct AhoCorasick {
     static const int alpha = 26;
     char offset = 'a';
+    bool built = false;
 
     struct Node {
         array<int, alpha> nxt{};
@@ -61,7 +62,10 @@ struct AhoCorasick {
     }
 
     vector<vector<int>> match(const string& s){
-        buildAhoTree();
+        if (!built) {
+            buildAhoTree();
+            built = true;
+        }
         vector<vector<int>> res(sz(pat_len));
         int cur = 0;
         for(int i = 0; i < sz(s); ++i){
