@@ -1,17 +1,17 @@
 struct SuffixArray {
     const static int alpha = 128, LOG = 20;
     vector<int> suf, order, newOrder, lcp, logs;
-    vector<vector<int>> table;
+    vector <vector<int>> table;
     string s;
     int n;
 
-    SuffixArray(const string& _s) : n(sz(_s) + 1), s(_s) {
+    SuffixArray(const string &_s) : n(sz(_s) + 1), s(_s) {
         s += ' ';
         suf = order = newOrder = vector<int>(n);
         vector<int> bucket_idx(n), newOrder(n), new_suf(n);
         vector<int> prev(n), head(alpha, -1);
 
-        auto getOrder = [&](const int& a) -> int {
+        auto getOrder = [&](const int &a) -> int {
             return a < n ? order[a] : 0;
         };
 
@@ -20,10 +20,11 @@ struct SuffixArray {
             head[s[i]] = i;
         }
         for (int i = 0, buc = -1, idx = 0; i < alpha; i++) {
-            if(head[i] == -1) continue;
+            if (head[i] == -1) continue;
             bucket_idx[++buc] = idx;
-            for (int j = head[i]; ~j; j = prev[j]){
-                suf[idx++] = j; order[j] = buc;
+            for (int j = head[i]; ~j; j = prev[j]) {
+                suf[idx++] = j;
+                order[j] = buc;
             }
         }
 
@@ -34,14 +35,14 @@ struct SuffixArray {
             };
             for (int i = 0; i < n; i++) {
                 int j = suf[i] - len;
-                if(j < 0) continue;
+                if (j < 0) continue;
                 new_suf[bucket_idx[order[j]]++] = j;
             }
-            for(int i = 1; i < n; i++){
+            for (int i = 1; i < n; i++) {
                 suf[i] = new_suf[i];
                 bool newGroup = comp(suf[i - 1], suf[i]);
                 newOrder[suf[i]] = newOrder[suf[i - 1]] + newGroup;
-                if(newGroup){
+                if (newGroup) {
                     bucket_idx[newOrder[suf[i]]] = i;
                 }
             }
@@ -61,7 +62,7 @@ struct SuffixArray {
     }
 
     void buildTable() {
-        table = vector<vector<int>>(n + 1, vector<int>(LOG));
+        table = vector < vector < int >> (n + 1, vector<int>(LOG));
         logs = vector<int>(n + 1);
         logs[1] = 0;
         for (int i = 2; i <= n; i++)
@@ -90,7 +91,8 @@ struct SuffixArray {
 
     int compare_substrings(int l1, int r1, int l2, int r2) {
         int k = min({LCP(l1, l2), r1 - l1 + 1, r2 - l2 + 1});
-        l1 += k; l2 += k;
+        l1 += k;
+        l2 += k;
         if (l1 > r1 && l2 > r2) return 0;
         if (l1 > r1) return -1;
         if (l2 > r2) return 1;
@@ -123,44 +125,51 @@ string longest_common_substring(const string &s1, const string &s2) {
     return s1.substr(idx, mx);
 }
 
-int longest_common_substring(const vector<string> &v) {
-    int n = v.size();
-    int len = n - 1;
-    for (auto &it : v)
-        len += it.size();
-    string s(len, '.');
-    vector<int> type(len + 1, n), frq(n + 1);
-    for (int i = 0, j = 0; i < v.size(); i++) {
-        if (i)
-            s[j] = 'z' + i;
-        for (char ch : v[i]) {
-            s[j] = ch;
-            type[j] = i;
-            j++;
+int longest_common_substring(const vector <string> &strings) {
+    if (strings.empty()) return 0;
+    if (strings.size() == 1) return strings[0].size();
+    string s = "";
+    vector<int> type;
+    int num_strings = strings.size();
+    char separator = '0';
+    for (int i = 0; i < num_strings; i++) {
+        for (char c: strings[i]) {
+            s += c;
+            type.push_back(i + 1);
+        }
+        s += separator++;
+        type.push_back(0);
+    }
+    int n = s.size();
+    SuffixArray sf(s);
+    vector<int> f(num_strings + 2, 0);
+    MonoQueue<int, greater<int>> mq;
+    int l = 1, r = 0, ans = 0, cnt = 0;
+    while (r < n) {
+        if (cnt < num_strings) {
+            r++;
+            if (r == n) break;
+            int current_type = type[sf.suf[r]];
+            if (current_type != 0) {
+                if (f[current_type] == 0) cnt++;
+                f[current_type]++;
+            }
+            mq.push(sf.lcp[r], r);
+        } else {
+            mq.pop_outdated(l + 1);
+            ans = max(ans, mq.get_opt());
+            int left_type = type[sf.suf[l]];
+            if (left_type != 0) {
+                if (f[left_type] == 1) cnt--;
+                f[left_type]--;
+            }
+            l++;
         }
     }
-    SuffixArray sa(s);
-    vector<int> suf = sa.suf, lcp = sa.lcp;
-    monoqueue q;
-    int st = 0, ed = 0, cnt = 0, mx = 0;
-    while (st <= s.size()) {
-        while (ed <= s.size() && cnt < v.size()) {
-            q.push(lcp[ed], ed);
-            if (++frq[type[suf[ed]]] == 1)
-                cnt++;
-            ed++;
-        }
-        q.pop(st);
-        if (cnt == v.size())
-            mx = max(mx, q.getMin()); //st+1,ed
-        if (--frq[type[suf[st]]] == 0)
-            cnt--;
-        st++;
-    }
-    return mx;
+    return ans;
 }
 
-string kth_substring(string s, int k) {	//1-based,repated
+string kth_substring(string s, int k) {    //1-based,repated
     int n = s.size();
     SuffixArray sa(s);
     vector<int> suf = sa.suf, lcp = sa.lcp;
@@ -184,3 +193,4 @@ string kth_substring(string s, int k) {	//1-based,repated
         k -= len;
     }
 }
+
