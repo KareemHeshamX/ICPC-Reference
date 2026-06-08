@@ -39,13 +39,13 @@ vector<int> mobius(int n) {
     vector<int> mob(n + 1, 1);
     vector<int> primes, is_prime(n + 1, 1);
     is_prime[0] = is_prime[1] = 0;
-    for (int i = 2; i <= N; ++i) {
+    for (int i = 2; i <= n; ++i) {
         if (is_prime[i]) {
             primes.push_back(i);
             mob[i] = -1;
         }
         for (int p : primes) {
-            if (i * p > N) break;
+            if (i * p > n) break;
             is_prime[i * p] = false;
             if (i % p == 0) {
                 mob[i * p] = 0;
