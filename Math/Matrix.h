@@ -50,5 +50,6 @@ Matrix power(Matrix m, int p) {
 Matrix sumPower(Matrix a, int k) {
     if (k == 0) return Matrix(a.rows, a.cols, 0); 
     if (k & 1) return a + (a * sumPower(a, k - 1));
-    return sumPower(a, k >> 1) + (sumPower(a, k >> 1) * power(a, k >> 1));
+    Matrix half = sumPower(a, k >> 1); 
+    return half + (half * power(a, k >> 1));
 }
