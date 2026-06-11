@@ -109,3 +109,12 @@ void testCase() {
 	for (auto it:fin) cout << it << ' ';
 	cout << sz(s);
 }
+
+// automaton
+vector<vector<int>>atm(m + 1, vector<int>(26));
+for (int i = 0; i <= m; i++) {
+	for (int ch = 0; ch < 26; ch++) {
+		if (i < m && s[i] - 'A' == ch) atm[i][ch] = i + 1;
+		else atm[i][ch] = (i == 0 ? 0 : atm[pi[i - 1]][ch]);
+	}
+}
