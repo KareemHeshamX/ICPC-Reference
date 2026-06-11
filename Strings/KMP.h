@@ -90,3 +90,22 @@ vector<int> build_fre_prefix(const string& s) {
 	for (auto& it : frq)it++;
 	return frq;
 }
+
+void testCase() {
+	string s; cin >> s;
+	vector<int>lps(sz(s));
+	for (int i = 1, j = 0; i < sz(s); i++) {
+		while (j && s[i] != s[j]) j = lps[j - 1];
+		if (s[i] == s[j]) j++;
+		lps[i] = j;
+	}
+	vector<int>fin;
+	// get all periods (ignoring partial remaining suffix)
+	int crnt = lps[sz(s) - 1];
+	while (crnt) {
+		fin.push_back(sz(s) - crnt);
+		crnt = lps[crnt - 1];
+	}
+	for (auto it:fin) cout << it << ' ';
+	cout << sz(s);
+}
