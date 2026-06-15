@@ -31,7 +31,8 @@ namespace FFT {
         }
     }
     vector<int64_t> mul(const vector<int> &a, const vector<int> &b) {
-        int N = 1 << (__lg(a.size() + b.size()) + 1);
+        int N = 1;
+        while (N < sz(a) + sz(b)) N <<= 1;
 
         vector<cd> ta(a.begin(), a.end()), tb(b.begin(), b.end());
         ta.resize(N);
