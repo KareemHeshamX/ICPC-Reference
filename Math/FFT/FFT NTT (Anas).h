@@ -125,7 +125,8 @@ namespace NTT {
         }
     }
     vector<int> mulMod(vector<int> a, vector<int> b) {
-        int N = 1 << (__lg(a.size() + b.size()) + 1);
+        int N = 1;
+        while (N < sz(a) + sz(b)) N <<= 1;
         a.resize(N);
         b.resize(N);
 
