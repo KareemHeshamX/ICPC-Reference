@@ -1,3 +1,12 @@
+
+struct cd { // replace with complex if the time is tight
+    double x, y;
+    cd(double x = 0, double y = 0) : x(x), y(y) {}
+    cd operator+(const cd& o) const { return cd(x + o.x, y + o.y); }
+    cd operator-(const cd& o) const { return cd(x - o.x, y - o.y); }
+    cd operator*(const cd& o) const { return cd(x * o.x - y * o.y, x * o.y + y * o.x); }
+};
+
 namespace FFT {
     using cd = complex<double>;
     double pi = acos(-1);
