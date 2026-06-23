@@ -12,8 +12,8 @@ inline int sub(int a, int b) {
     return res;
 }
 
-int64_t power(int64_t a, int64_t b) {
-    int64_t ret = 1;
+ll power(ll a, ll b) {
+    ll ret = 1;
     a %= mod;
     while (b) {
         if (b & 1) ret = ret * a % mod;
