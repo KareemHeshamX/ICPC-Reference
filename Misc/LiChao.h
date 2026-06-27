@@ -1,35 +1,45 @@
-#define ll long long
+const ll INF = 4e18;
+const ll XMIN = 0, XMAX = 100005; // Global bounds
 
-const int LC_N = (int)1e6 + 1;
-const ll LC_INF = (ll)1e17;
-vector<array<ll,2>> lc_tree(4 * LC_N, {0, LC_INF});
+struct Line {
+    ll m = 0, c = -INF;
+    ll get(ll x) const { return m * x + c; }
+};
 
-ll f_line(const array<ll,2>& line, int x) {
-    return line[0] * x + line[1];
-}
+struct LiChao {
+    vector<Line> tree;
 
-void lc_insert(array<ll,2> line, int lo = 1, int hi = LC_N, int i = 1) {
-    int m = (lo + hi) / 2;
-    bool left = f_line(line, lo) < f_line(lc_tree[i], lo);
-    bool mid  = f_line(line, m)  < f_line(lc_tree[i], m);
+    LiChao() {
+        tree.assign(4 * (XMAX - XMIN + 5), {});
+    }
 
-    if (mid) swap(lc_tree[i], line);
-    if (hi - lo == 1) return;
+    void push(Line nw, int v = 1, ll l = XMIN, ll r = XMAX) {
+        ll m = l + (r - l) / 2;
+        bool left = nw.get(l) > tree[v].get(l);
+        bool mid  = nw.get(m) > tree[v].get(m);
 
-    if (left != mid)
-        lc_insert(line, lo, m, 2 * i);
-    else
-        lc_insert(line, m, hi, 2 * i + 1);
-}
+        if (mid) swap(tree[v], nw);
+        if (l == r) return;
 
-ll lc_query(int x, int lo = 1, int hi = LC_N, int i = 1) {
-    int m = (lo + hi) / 2;
-    ll curr = f_line(lc_tree[i], x);
+        if (left != mid) push(nw, 2 * v, l, m);
+        else             push(nw, 2 * v + 1, m + 1, r);
+    }
 
-    if (hi - lo == 1) return curr;
+    void add(Line nw, ll L = XMIN, ll R = XMAX, int v = 1, ll l = XMIN, ll r = XMAX) {
+        if (l > R || r < L) return;
+        if (L <= l && r <= R) return push(nw, v, l, r);
 
-    if (x < m)
-        return min(curr, lc_query(x, lo, m, 2 * i));
-    else
-        return min(curr, lc_query(x, m, hi, 2 * i + 1));
-}
+        ll m = l + (r - l) / 2;
+        add(nw, L, R, 2 * v, l, m);
+        add(nw, L, R, 2 * v + 1, m + 1, r);
+    }
+
+    ll query(ll x, int v = 1, ll l = XMIN, ll r = XMAX) {
+        ll curr = tree[v].get(x);
+        if (l == r) return curr;
+
+        ll m = l + (r - l) / 2;
+        if (x <= m) return max(curr, query(x, 2 * v, l, m));
+        else        return max(curr, query(x, 2 * v + 1, m + 1, r));
+    }
+};

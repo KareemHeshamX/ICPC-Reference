@@ -1,4 +1,4 @@
-const ll INF = 4e18;
+const ll INF = 2e18;
 const ll XMIN = -2e9, XMAX = 2e9;
 
 // ld instead of ll in everything except l, r, x if m or c only are doubles
@@ -29,7 +29,7 @@ struct DynamicLiChao {
 
     void push(Line nw, int v = 1, ll l = XMIN, ll r = XMAX) {
         // ld m = l + (r - l) / 2.0;
-        ll m = l + (r - l) / 2;
+        ll m = l + (r - l) / 2 - ((l + r) < 0 && (l + r) % 2);
         bool left = nw.get(l) > tree[v].line.get(l);
         bool mid  = nw.get(m) > tree[v].line.get(m);
 
@@ -47,9 +47,9 @@ struct DynamicLiChao {
         if (L <= l && r <= R) return push(nw, v, l, r);
 
         // ld m = l + (r - l) / 2.0;
-        ll m = l + (r - l) / 2;
-        if (L <= m) add(nw, L, R, get_l(v), l, m);
-        if (R > m)  add(nw, L, R, get_r(v), m + 1, r);
+        ll m = l + (r - l) / 2 - ((l + r) < 0 && (l + r) % 2);
+        add(nw, L, R, get_l(v), l, m);
+        add(nw, L, R, get_r(v), m + 1, r); // remove +1
     }
 
     ll query(ll x, int v = 1, ll l = XMIN, ll r = XMAX) {
@@ -59,7 +59,7 @@ struct DynamicLiChao {
         if (l == r) return curr;
 
         // ld m = l + (r - l) / 2.0;
-        ll m = l + (r - l) / 2;
+        ll m = l + (r - l) / 2 - ((l + r) < 0 && (l + r) % 2);
         if (x <= m) return max(curr, query(x, tree[v].lc, l, m));
         else        return max(curr, query(x, tree[v].rc, m + 1, r)); // remove +1
     }
