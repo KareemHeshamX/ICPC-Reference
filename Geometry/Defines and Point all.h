@@ -7,6 +7,7 @@
 #define len(v) (hypotl((v).y, (v).x))
 
 const ld eps = 1e-12, PI = acosl(-1.0);
+int sign(double x) {return (x>eps) - (x<-eps);}
 
 struct P {
    ot x, y;

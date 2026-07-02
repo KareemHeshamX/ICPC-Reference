@@ -16,6 +16,14 @@ ll modInverse(ll b, ll mod = 1e9 + 7) { // if mod is not Prime,gcd(a,b) must be 
 	return power(b, phi_function(mod) - 1, mod);
 }
 
+// if a and m are coprime
+ll inv(ll a, ll m) {
+    ll x, y;
+    ll g = extended_euclidean(a, m, x, y);    
+    x = (x % m + m) % m;
+    return x;
+}
+
 // return a ^ 1 + a ^ 2 + a ^ 3 + .... a ^ k
 ll sumPower(ll a, ll k, int mod = 1e9 + 7) {
 	if (k == 1) return a % mod;
