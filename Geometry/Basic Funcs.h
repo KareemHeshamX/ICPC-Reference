@@ -139,3 +139,7 @@ vector<P> circle_circle_intersection(P a, ld r, P b, ld R) {
     if (y > eps) ret.push_back(a + v * x - v.rotate(PI/2) * y);
     return ret;
 }
+
+ld angleBetweenTwoVectors(P a, P b) {
+    return atan2l(abs(a^b), a*b);
+}
