@@ -104,3 +104,75 @@ struct suffix_automaton {
         return ans;
     }
 };
+
+// GSAM (Generalized SAM for multiple strings)
+
+// --- NEW: Data structures for string IDs ---
+set<int> ids;
+int distinct_count = 0; // Will hold the final count of unique strings
+
+// constructor
+suffix_automaton(const vector<string> &strings) : suffix_automaton() {
+    // 1. Build and Tag
+    for (int i = 0; i < sz(strings); i++) {
+        int current_last = 0;
+        for (char ch : strings[i]) {
+            current_last = extend(ch - offset, current_last);
+            // Tag this state with the current string ID
+            st[current_last].ids.insert(i);
+        }
+    }
+
+    // 2. Propagate up the link tree
+    propagate_ids();
+}
+
+// extend function
+if (st[last_node].next[c] != -1) {
+    int q = st[last_node].next[c];
+    if (st[last_node].len + 1 == st[q].len) {
+        return q;
+    }
+
+    int clone = sz(st);
+    st.push_back(state(st[last_node].len + 1, st[q]));
+    st[clone].cnt = 0;
+
+    for(int p = last_node; ~p && st[p].next[c] == q; p = st[p].link) {
+        st[p].next[c] = clone;
+    }
+    st[q].link = clone;
+    return clone;
+} // else add normal extend
+
+
+// --- NEW: Small-to-Large Merging Logic ---
+void propagate_ids() {
+    // Create an array of state indices
+    vector<int> order(sz(st));
+    iota(order.begin(), order.end(), 0);
+
+    // Sort states by length descending (leaves to root)
+    sort(order.begin(), order.end(), [&](int a, int b) {
+        return st[a].len > st[b].len;
+    });
+
+    // Traverse from longest to shortest
+    for (int u : order) {
+        // Save the final count for this state before we swap/modify its set
+        st[u].distinct_count = st[u].ids.size();
+
+        int p = st[u].link;
+        if (p != -1) {
+            // Small-to-Large Merging: Always merge the smaller set into the larger one
+            if (st[u].ids.size() > st[p].ids.size()) {
+                swap(st[u].ids, st[p].ids); // O(1) swap
+            }
+            for (int id : st[u].ids) {
+                st[p].ids.insert(id);
+            }
+            // Optional: Clear the set to save memory since we don't need it anymore
+            st[u].ids.clear();
+        }
+    }
+}
