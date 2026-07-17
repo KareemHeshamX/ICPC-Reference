@@ -12,13 +12,11 @@ struct suffix_automaton {
                 next[i] = other.next[i];
             }
         }
-        // GSAM
-        set<int> ids;
-        int distinct_count = 0;
     };
  
     vector<state> st;
     vector<ll>dp;
+    int last = 0;
 
     suffix_automaton() {
         st.push_back(state());
@@ -26,38 +24,10 @@ struct suffix_automaton {
     }
 
     suffix_automaton(const string &s) : suffix_automaton() {
-        int last = 0;
-        for (char ch : s) last = extend(ch - offset, last);
-    }
-
-    suffix_automaton(const vector<string> &strings) : suffix_automaton() {
-        for (int i = 0; i < sz(strings); i++) {
-            int last = 0;
-            for (char ch : strings[i]) {
-                last = extend(ch - offset, last);
-                st[last].ids.insert(i);
-            }
-        }
+        for (char ch : s) extend(ch - offset);
     }
  
-    int extend(int c, int last) {
-        // GSAM
-        if (st[last].next[c] != -1) {
-            int q = st[last].next[c];
-            if (st[last].len + 1 == st[q].len) {
-                return q;
-            }
-
-            int clone = sz(st);
-            st.push_back(state(st[last].len + 1, st[q]));
-            st[clone].cnt = 0;
-
-            for(int p = last; ~p && st[p].next[c] == q; p = st[p].link) {
-                st[p].next[c] = clone;
-            }
-            st[q].link = clone;
-            return clone;
-        }
+    void extend(int c) {
         int cur = sz(st), p = last;
         st.push_back(state(st[last].len + 1));
         st[cur].cnt = 1;
@@ -79,7 +49,7 @@ struct suffix_automaton {
                 st[q].link = st[cur].link = clone;
             }
         }
-        return cur;
+        last = cur;
     }
  
     void calc_number_of_occurrences() {
@@ -132,28 +102,22 @@ struct suffix_automaton {
         }
         return ans;
     }
-
-    void propagate_ids() {
-        vector<int> order(sz(st));
-        iota(order.begin(), order.end(), 0);
-
-        sort(order.begin(), order.end(), [&](int a, int b) {
-            return st[a].len > st[b].len;
-        });
-
-        for (int u : order) {
-            st[u].distinct_count = st[u].ids.size();
-
-            int p = st[u].link;
-            if (p != -1) {
-                if (st[u].ids.size() > st[p].ids.size()) {
-                    swap(st[u].ids, st[p].ids);
-                }
-                for (int id : st[u].ids) {
-                    st[p].ids.insert(id);
-                }
-                st[u].ids.clear();
-            }
-        }
-    }
 };
+
+// extend function in GSAM
+if (st[last_node].next[c] != -1) {
+    int q = st[last_node].next[c];
+    if (st[last_node].len + 1 == st[q].len) {
+        return q;
+    }
+
+    int clone = sz(st);
+    st.push_back(state(st[last_node].len + 1, st[q]));
+    st[clone].cnt = 0;
+
+    for(int p = last_node; ~p && st[p].next[c] == q; p = st[p].link) {
+        st[p].next[c] = clone;
+    }
+    st[q].link = clone;
+    return clone;
+} // else add normal extend
