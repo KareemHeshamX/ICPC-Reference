@@ -12,23 +12,52 @@ struct suffix_automaton {
                 next[i] = other.next[i];
             }
         }
+        // GSAM
+        set<int> ids;
+        int distinct_count = 0;
     };
  
     vector<state> st;
-    vector<ll> dp;
-    int last = 0;
+    vector<ll>dp;
+
     suffix_automaton() {
         st.push_back(state());
         st[0].link = -1;
     }
- 
+
     suffix_automaton(const string &s) : suffix_automaton() {
-        for (char ch : s) extend(ch - offset);
-        dp = vector<ll>(sz(st), -1);
-        calc_number_of_occurrences();
+        int last = 0;
+        for (char ch : s) last = extend(ch - offset, last);
+    }
+
+    suffix_automaton(const vector<string> &strings) : suffix_automaton() {
+        for (int i = 0; i < sz(strings); i++) {
+            int last = 0;
+            for (char ch : strings[i]) {
+                last = extend(ch - offset, last);
+                st[last].ids.insert(i);
+            }
+        }
     }
  
-    void extend(int c) {
+    int extend(int c, int last) {
+        // GSAM
+        if (st[last].next[c] != -1) {
+            int q = st[last].next[c];
+            if (st[last].len + 1 == st[q].len) {
+                return q;
+            }
+
+            int clone = sz(st);
+            st.push_back(state(st[last].len + 1, st[q]));
+            st[clone].cnt = 0;
+
+            for(int p = last; ~p && st[p].next[c] == q; p = st[p].link) {
+                st[p].next[c] = clone;
+            }
+            st[q].link = clone;
+            return clone;
+        }
         int cur = sz(st), p = last;
         st.push_back(state(st[last].len + 1));
         st[cur].cnt = 1;
@@ -50,7 +79,7 @@ struct suffix_automaton {
                 st[q].link = st[cur].link = clone;
             }
         }
-        last = cur;
+        return cur;
     }
  
     void calc_number_of_occurrences() {
@@ -103,76 +132,28 @@ struct suffix_automaton {
         }
         return ans;
     }
+
+    void propagate_ids() {
+        vector<int> order(sz(st));
+        iota(order.begin(), order.end(), 0);
+
+        sort(order.begin(), order.end(), [&](int a, int b) {
+            return st[a].len > st[b].len;
+        });
+
+        for (int u : order) {
+            st[u].distinct_count = st[u].ids.size();
+
+            int p = st[u].link;
+            if (p != -1) {
+                if (st[u].ids.size() > st[p].ids.size()) {
+                    swap(st[u].ids, st[p].ids);
+                }
+                for (int id : st[u].ids) {
+                    st[p].ids.insert(id);
+                }
+                st[u].ids.clear();
+            }
+        }
+    }
 };
-
-// GSAM (Generalized SAM for multiple strings)
-
-// --- NEW: Data structures for string IDs ---
-set<int> ids;
-int distinct_count = 0; // Will hold the final count of unique strings
-
-// constructor
-suffix_automaton(const vector<string> &strings) : suffix_automaton() {
-    // 1. Build and Tag
-    for (int i = 0; i < sz(strings); i++) {
-        int current_last = 0;
-        for (char ch : strings[i]) {
-            current_last = extend(ch - offset, current_last);
-            // Tag this state with the current string ID
-            st[current_last].ids.insert(i);
-        }
-    }
-
-    // 2. Propagate up the link tree
-    propagate_ids();
-}
-
-// extend function
-if (st[last_node].next[c] != -1) {
-    int q = st[last_node].next[c];
-    if (st[last_node].len + 1 == st[q].len) {
-        return q;
-    }
-
-    int clone = sz(st);
-    st.push_back(state(st[last_node].len + 1, st[q]));
-    st[clone].cnt = 0;
-
-    for(int p = last_node; ~p && st[p].next[c] == q; p = st[p].link) {
-        st[p].next[c] = clone;
-    }
-    st[q].link = clone;
-    return clone;
-} // else add normal extend
-
-
-// --- NEW: Small-to-Large Merging Logic ---
-void propagate_ids() {
-    // Create an array of state indices
-    vector<int> order(sz(st));
-    iota(order.begin(), order.end(), 0);
-
-    // Sort states by length descending (leaves to root)
-    sort(order.begin(), order.end(), [&](int a, int b) {
-        return st[a].len > st[b].len;
-    });
-
-    // Traverse from longest to shortest
-    for (int u : order) {
-        // Save the final count for this state before we swap/modify its set
-        st[u].distinct_count = st[u].ids.size();
-
-        int p = st[u].link;
-        if (p != -1) {
-            // Small-to-Large Merging: Always merge the smaller set into the larger one
-            if (st[u].ids.size() > st[p].ids.size()) {
-                swap(st[u].ids, st[p].ids); // O(1) swap
-            }
-            for (int id : st[u].ids) {
-                st[p].ids.insert(id);
-            }
-            // Optional: Clear the set to save memory since we don't need it anymore
-            st[u].ids.clear();
-        }
-    }
-}
