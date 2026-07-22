@@ -15,17 +15,16 @@ struct suffix_automaton {
     };
  
     vector<state> st;
-    vector<ll> dp;
+    vector<ll>dp;
     int last = 0;
+
     suffix_automaton() {
         st.push_back(state());
         st[0].link = -1;
     }
- 
+
     suffix_automaton(const string &s) : suffix_automaton() {
         for (char ch : s) extend(ch - offset);
-        dp = vector<ll>(sz(st), -1);
-        calc_number_of_occurrences();
     }
  
     void extend(int c) {
@@ -104,3 +103,21 @@ struct suffix_automaton {
         return ans;
     }
 };
+
+// extend function in GSAM
+if (st[last_node].next[c] != -1) {
+    int q = st[last_node].next[c];
+    if (st[last_node].len + 1 == st[q].len) {
+        return q;
+    }
+
+    int clone = sz(st);
+    st.push_back(state(st[last_node].len + 1, st[q]));
+    st[clone].cnt = 0;
+
+    for(int p = last_node; ~p && st[p].next[c] == q; p = st[p].link) {
+        st[p].next[c] = clone;
+    }
+    st[q].link = clone;
+    return clone;
+} // else add normal extend
