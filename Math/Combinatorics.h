@@ -56,22 +56,20 @@ ull countNumberOfPaths(int n, int m) {
 	return nCr(n + m - 2, n - 1);
 }
 
-const int N = 1e5 + 100;
-const int MOD = 1e9 + 7;
-ll fact[N];
-ll inv[N]; //mod inverse for i
-ll invfact[N]; //mod inverse for i!
+const int mod = 1e9 + 7, N = 1e6 + 100;
+
+ll fact[N], inv[N], invfact[N];
+
 void factInverse() {
 	fact[0] = inv[1] = fact[1] = invfact[0] = invfact[1] = 1;
-	for (long long i = 2; i < N; i++) {
-		fact[i] = (fact[i - 1] * i) % MOD;
-		inv[i] = MOD - (inv[MOD % i] * (MOD / i) % MOD);
-		invfact[i] = (inv[i] * invfact[i - 1]) % MOD;
+	for (ll i = 2; i < N; i++) {
+		fact[i] = (fact[i - 1] * i) % mod;
+		inv[i] = mod - (inv[mod % i] * (mod / i) % mod);
+		invfact[i] = (inv[i] * invfact[i - 1]) % mod;
 	}
 }
 
 ll nCr(int n, int r) {
-	if (r > n)
-		return 0;
-	return (((fact[n] * invfact[r]) % MOD) * invfact[n - r]) % MOD;
+	if (r > n) return 0;
+	return (((fact[n] * invfact[r]) % mod) * invfact[n - r]) % mod;
 }

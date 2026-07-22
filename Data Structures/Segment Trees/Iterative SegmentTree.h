@@ -6,7 +6,8 @@ struct segment_tree {
     F merge;
 
     segment_tree() {}
-    segment_tree(int _n, F _merge, T _neutral) : n(1 << (__bit_width(_n))), tree(2 * n, _neutral), neutral(_neutral), merge(_merge) {}
+    segment_tree(int _n, F _merge, T _neutral) : n(1 << (__bit_width(_n))),
+    tree(2 * n, _neutral), neutral(_neutral), merge(_merge) {}
 
     void update(int k, T x) {
         (tree[k += n] = x);
