@@ -44,4 +44,5 @@ ll sumRangeDivisors(ll x) {
 /*
  sum numbers to the power of 2 from 1 to n = (n * (n + 1) * (2n + 1) / 6)
  sum numbers to the power of 3 from 1 to n = ((n * (n + 1) / 2) ^ 2)
+ sum of triangular numbers from 1 to n = n * (n + 1) * (n + 2) / 6
  */
