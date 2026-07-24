@@ -15,6 +15,15 @@ ll sumPower(ll x, ll y) { //x^0 + x^1 + x^2 ... x^y
 	return (power(x, y + 1) - 1) / (x - 1);
 }
 
+ll sumPower(ll x, ll y) {
+	if (y == 0) return 1;
+	if (y % 2 == 1) {
+		ll half = sumPower(x, y / 2);
+		return half * (1 + power(x, (y / 2) + 1));
+	}
+	return sumPower(x, y - 1) + power(x, y);
+}
+
 
 // return sum of divisors for all number from 1 to n
 //O(n)
