@@ -65,6 +65,6 @@ vector<int>LIS(vector<int>&v) {
 		else lis2[id2] = rev[i];
 		ret2[i] = id2 + 1;
 	}
-	reverse(ret2.begin(), ret2.end())
+	reverse(ret2.begin(), ret2.end());
 	return ret;
 }
