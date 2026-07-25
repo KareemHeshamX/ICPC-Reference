@@ -4,79 +4,80 @@ struct AhoCorasick {
     bool built = false;
 
     struct Node {
-        array<int, alpha> nxt{};
-        int fail = 0, idx = -1, up = 0;
-        Node(){ nxt.fill(-1); }
+        array<int, alpha> child{}, nxt{};
+        int fail = 0, idx = -1, up = 0, freq = 0;
+        Node() {
+            child.fill(-1);
+            nxt.fill(0);
+        }
     };
 
     vector<Node> trie{Node()};
     vector<int> pat_len;
 
-    int add_pattern(const string& s){
+    int add_pattern(const string& s) {
         int cur = 0;
-        for(auto& ch : s){
+        for (auto& ch : s) {
             int c = ch - offset;
-            if(trie[cur].nxt[c] == -1){
-                trie[cur].nxt[c] = (int)trie.size();
+            if (trie[cur].child[c] == -1) {
+                trie[cur].child[c] = (int)trie.size();
                 trie.emplace_back();
             }
-            cur = trie[cur].nxt[c];
+            cur = trie[cur].child[c];
         }
-        if(trie[cur].idx == -1){
+        if (trie[cur].idx == -1) {
             trie[cur].idx = sz(pat_len);
             pat_len.push_back(sz(s));
         }
-        return trie[cur].idx;
+        trie[cur].freq++;
+        return cur;
     }
 
-    int compF(int u, int c){
-        while(trie[u].nxt[c] == -1) u = trie[u].fail;
-        return trie[u].nxt[c];
-    }
-
-    int getNxt(int u){
-        if(!u) return u;
-        int& v = trie[u].up;
-        return (~trie[v].idx ? v : v = getNxt(v));
-    }
-
-    void buildAhoTree(){
+    void buildAhoTree() {
+        built = true;
         queue<int> q;
-        for(int c = 0; c < alpha; ++c){
-            int u = trie[0].nxt[c];
-            if(u == -1) trie[0].nxt[c] = 0;
-            else{
-                trie[u].fail = 0;
+        for (int c = 0; c < alpha; ++c) {
+            int u = trie[0].child[c];
+            if (u != -1) {
+                trie[0].nxt[c] = u;
                 q.push(u);
             }
         }
-        while(!q.empty()){
+
+        while (!q.empty()) {
             int u = q.front(); q.pop();
-            for(int c = 0; c < alpha; ++c){
-                int v = trie[u].nxt[c];
-                if(v == -1) continue;
-                trie[v].up = trie[v].fail = compF(trie[u].fail, c);
-                q.push(v);
+            for (int c = 0; c < alpha; ++c) {
+                int v = trie[u].child[c];
+                if (v != -1) {
+                    trie[v].fail = trie[trie[u].fail].nxt[c];
+                    trie[u].nxt[c] = v;
+
+                    if (trie[trie[v].fail].idx != -1) trie[v].up = trie[v].fail;
+                    else trie[v].up = trie[trie[v].fail].up;
+
+                    q.push(v);
+                }
+                else trie[u].nxt[c] = trie[trie[u].fail].nxt[c];
             }
         }
     }
 
-    vector<vector<int>> match(const string& s){
-        if (!built) {
-            buildAhoTree();
-            built = true;
-        }
+    vector<vector<int>> match(const string& s) {
+        if (!built) buildAhoTree();
         vector<vector<int>> res(sz(pat_len));
         int cur = 0;
-        for(int i = 0; i < sz(s); ++i){
+
+        for (int i = 0; i < sz(s); ++i) {
             int c = s[i] - offset;
-            cur = compF(cur, c);
-            for(int u = cur; u ; u = getNxt(u)){
-                if(trie[u].idx != -1){
-                    res[trie[u].idx].push_back(i - pat_len[trie[u].idx] + 1);
-                }
+            cur = trie[cur].nxt[c];
+            int temp = (trie[cur].idx != -1) ? cur : trie[cur].up;
+
+            while (temp > 0) {
+                res[trie[temp].idx].push_back(i - pat_len[trie[temp].idx] + 1);
+                temp = trie[temp].up;
             }
         }
+
         return res;
     }
 };
