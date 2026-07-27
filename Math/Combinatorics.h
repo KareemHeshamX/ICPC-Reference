@@ -73,3 +73,13 @@ ll nCr(int n, int r) {
 	if (r > n) return 0;
 	return (((fact[n] * invfact[r]) % mod) * invfact[n - r]) % mod;
 }
+
+// for k
+// to get this
+// for (int freq = k; freq <= mx; freq++) {
+//    for (int j = k; j <= freq; j++) {
+//	      ans += ncr(f, j) * ncr(n - f, k - j);
+//    }
+//}
+// ans[k] = ncr(n - k, k);
+// ans[i] = ans[i - 1] + ncr(i - 1, k - 1) * ncr(n - i, k);
