@@ -6,11 +6,15 @@ struct segment_tree {
     F merge;
 
     segment_tree() {}
-    segment_tree(int _n, F _merge, T _neutral) : n(1 << (__bit_width(_n))),
-    tree(2 * n, _neutral), neutral(_neutral), merge(_merge) {}
+    segment_tree(int _n, F _merge, T _neutral) : neutral(_neutral), merge(_merge) {
+        n = 1;
+        while (n < _n) n *= 2;
+        tree.assign(2 * n, neutral);
+    }
 
     void update(int k, T x) {
-        (tree[k += n] = x);
+        k += n;
+        (tree[k] = x);
         for (k /= 2; k >= 1; k /= 2) {
             tree[k] = merge(tree[2 * k], tree[2 * k + 1]);
         }
