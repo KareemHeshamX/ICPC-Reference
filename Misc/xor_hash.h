@@ -1,13 +1,3 @@
-#include <bits/stdc++.h>
-using namespace std;
-
-using ll = int_fast64_t;
-using ld = long double;
-#define sz(s) (int)(s.size())
-// #define int ll
-
-int dx[] = {0, 0, -1, 1, -1, -1, 1, 1};
-int dy[] = {-1, 1, 0, 0, -1, 1, -1, 1};
 
 #include <chrono> // keep-include
 #include <random> // keep-include
@@ -45,17 +35,4 @@ void testCase() {
         ans += mp[hash[i + 1]]++;
     }
     cout << ans;
-}
-
-signed main(int argc, char **argv) {
-    cin.tie(0)->sync_with_stdio(0);
-#ifdef LOCAL
-    freopen(argv[1], "r", stdin);
-    freopen("output.txt", "w", stdout);
-#endif
-    int t = 1;
-    for (int i = 1; i <= N; i++) rnd[i] = Rand<ll>(1ll, 1ll << 63);
-    // cin >> t;
-    while (t--) testCase();
-    return 0;
 }
