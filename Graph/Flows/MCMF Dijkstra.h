@@ -16,14 +16,14 @@ struct MCMF {
 
     void addEdge(int u, int v, int cap, ll cost) {
         adj[u].push_back({v, cap, 0, cost, (int) adj[v].size()});
-        adj[v].push_back({u, 0, 0,− cost, (int) adj[u].size()− 1});
+        adj[v].push_back({u, 0, 0, - cost, (int) adj[u].size() - 1});
     }
 
     bool dijkstra() {
         fill(dis.begin(), dis.end(), LLONG_MAX);
-        fill(par.begin(), par.end(),− 1);
+        fill(par.begin(), par.end(),- 1);
         dis[src] = 0;
-        priority_queue<pair<ll, int>, vector<pair<ll, int> >, greater<pair<ll, int> > >
+        priority_queue<pair<ll, int>, vector<pair<ll, int> >, greater<pair<ll, int>>>
                 pq;
         pq.emplace(0, src);
         while (!pq.empty()) {
@@ -35,7 +35,7 @@ struct MCMF {
                 edge &e = adj[u][i];
                 if (e.flow == e.cap)
                     continue;
-                ll new_cost = e.cost + pot[u]− pot[e.to];
+                ll new_cost = e.cost + pot[u] - pot[e.to];
                 if (dis[e.to] > dis[u] + new_cost) {
                     dis[e.to] = dis[u] + new_cost;
                     par[e.to] = u;
@@ -60,15 +60,15 @@ struct MCMF {
             int push = INT_MAX, cur = sink;
             while (cur != src) {
                 int p = par[cur], e = from_edge[cur];
-                push = min(push, adj[p][e].cap− adj[p][e].flow);
+                push = min(push, adj[p][e].cap - adj[p][e].flow);
                 cur = p;
             }
             cur = sink;
             while (cur != src) {
                 int p = par[cur], e = from_edge[cur];
                 adj[p][e].flow += push;
-                adj[cur][adj[p][e].backEdge].flow− = push;
-                cost += 1LL ∗ push ∗ adj[p][e].cost;
+                adj[cur][adj[p][e].backEdge].flow -= push;
+                cost += 1LL * push * adj[p][e].cost;
                 cur = p;
             }
             flow += push;
