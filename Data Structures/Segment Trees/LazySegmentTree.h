@@ -1,6 +1,6 @@
 struct Node {
     int val = 0, lazy = 0;
-
+    Node (){}
     void apply(int l, int r, int v) {
         val += v * (r - l + 1);
         lazy += v;
