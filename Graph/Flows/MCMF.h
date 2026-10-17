@@ -1,89 +1,127 @@
-struct MCMF { //0-based
-	struct edge {
-		int from, to, cost, cap, flow, backEdge;
-		edge() {
-			from = to = cost = cap = flow = backEdge = 0;
-		}
-		edge(int from, int to, int cost, int cap, int flow, int backEdge) :
-				from(from), to(to), cost(cost), cap(cap), flow(flow), backEdge(
-						backEdge) {
-		}
-		bool operator <(const edge &other) const {
-			return cost < other.cost;
-		}
-	};
-	int n, src, dest;
-	vector<vector<edge>> adj;
-	const int OO = 1e9;
-	MCMF(int n, int src, int dest) :
-			n(n), src(src), dest(dest), adj(n) {
-	}
-	void addEdge(int u, int v, int cost, int cap) {
-		edge e1 = edge(u, v, cost, cap, 0, adj[v].size());
-		edge e2 = edge(v, u, -cost, 0, 0, adj[u].size());
-		adj[u].push_back(e1);
-		adj[v].push_back(e2);
-	}
-	pair<int, int> minCostMaxFlow() {
-		int maxFlow = 0, cost = 0;
-		while (true) {
-			vector<pair<int, int>> path = spfa();
-			if (path.empty())
-				break;
-			int new_flow = OO;
-			for (auto &it : path) {
-				edge &e = adj[it.first][it.second];
-				new_flow = min(new_flow, e.cap - e.flow);
-			}
-			for (auto &it : path) {
-				edge &e = adj[it.first][it.second];
-				e.flow += new_flow;
-				cost += new_flow * e.cost;
-				adj[e.to][e.backEdge].flow -= new_flow;
-			}
-			maxFlow += new_flow;
-		}
-		return {maxFlow,cost};
-	}
-	enum visit {
-		finished, in_queue, not_visited
-	};
-	vector<pair<int, int>> spfa() {
-		vector<int> dis(n, OO), prev(n, -1), from_edge(n), state(n,
-				not_visited);
-		deque<int> q;
-		dis[src] = 0;
-		q.push_back(src);
-		while (!q.empty()) {
-			int u = q.front();
-			q.pop_front();
-			state[u] = finished;
-			for (int i = 0; i < adj[u].size(); i++) {
-				edge e = adj[u][i];
-				if (e.flow >= e.cap || dis[e.to] <= dis[u] + e.cost)
-					continue;
-				dis[e.to] = dis[u] + e.cost;
-				prev[e.to] = u;
-				from_edge[e.to] = i;
-				if (state[e.to] == in_queue)
-					continue;
-				if (state[e.to] == finished
-						|| (!q.empty() && dis[q.front()] > dis[e.to]))
-					q.push_front(e.to);
-				else
-					q.push_back(e.to);
-				state[e.to] = in_queue;
-			}
-		}
-		if (dis[dest] == OO)
-			return {};
-		vector<pair<int, int>> path;
-		int cur = dest;
-		while (cur != src) {
-			path.push_back( { prev[cur], from_edge[cur] });
-			cur = prev[cur];
-		}
-		reverse(path.begin(), path.end());
-		return path;
-	}
+struct MCMF {
+    struct edge {
+        int to, cap, flow;
+        ll cost;
+        int backEdge;
+    };
+
+    int n, src, sink;
+    vector<vector<edge> > adj;
+    vector<ll> pot, dis;
+    vector<int> par, from_edge;
+
+    // nodes are 0..n (inclusive), as in the original template
+    MCMF(int n)
+        : n(n), adj(n + 1), pot(n + 1), dis(n + 1), par(n + 1), from_edge(n + 1) {
+    }
+
+    void addEdge(int u, int v, int cap, ll cost) {
+        adj[u].push_back({v, cap, 0, cost, (int) adj[v].size()});
+        adj[v].push_back({u, 0, 0, - cost, (int) adj[u].size() - 1});
+    }
+
+    // Initial potentials via queue-based Bellman-Ford (SPFA) from src.
+    // Only runs if some residual edge has negative cost.
+    // Returns false if a negative cycle is reachable from src.
+    bool initPotentials() {
+        fill(pot.begin(), pot.end(), 0);
+        bool neg = false;
+        for (int u = 0; u <= n && !neg; ++u)
+            for (edge &e : adj[u])
+                if (e.flow < e.cap && e.cost < 0) { neg = true; break; }
+        if (!neg)
+            return true;
+        fill(dis.begin(), dis.end(), LLONG_MAX);
+        vector<int> cnt(n + 1, 0);
+        vector<char> inq(n + 1, 0);
+        deque<int> q;
+        dis[src] = 0;
+        q.push_back(src);
+        inq[src] = 1;
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop_front();
+            inq[u] = 0;
+            for (edge &e : adj[u]) {
+                if (e.flow == e.cap)
+                    continue;
+                if (dis[e.to] > dis[u] + e.cost) {
+                    dis[e.to] = dis[u] + e.cost;
+                    if (!inq[e.to]) {
+                        if (++cnt[e.to] > n + 1)
+                            return false; // negative cycle
+                        inq[e.to] = 1;
+                        q.push_back(e.to);
+                    }
+                }
+            }
+        }
+        for (int i = 0; i <= n; ++i)
+            pot[i] = dis[i] == LLONG_MAX ? 0 : dis[i]; // unreachable nodes stay unreachable
+        return true;
+    }
+
+    bool dijkstra() {
+        fill(dis.begin(), dis.end(), LLONG_MAX);
+        fill(par.begin(), par.end(),- 1);
+        dis[src] = 0;
+        priority_queue<pair<ll, int>, vector<pair<ll, int> >, greater<pair<ll, int>>>
+                pq;
+        pq.emplace(0, src);
+        while (!pq.empty()) {
+            auto [d, u] = pq.top();
+            pq.pop();
+            if (d > dis[u])
+                continue;
+            for (int i = 0; i < (int) adj[u].size(); ++i) {
+                edge &e = adj[u][i];
+                if (e.flow == e.cap)
+                    continue;
+                ll new_cost = e.cost + pot[u] - pot[e.to];
+                if (dis[e.to] > dis[u] + new_cost) {
+                    dis[e.to] = dis[u] + new_cost;
+                    par[e.to] = u;
+                    from_edge[e.to] = i;
+                    pq.emplace(dis[e.to], e.to);
+                }
+            }
+        }
+        return dis[sink] != LLONG_MAX;
+    }
+
+    // Returns {flow, cost}; returns {-1, 0} if a negative cycle is reachable from src.
+    // anyFlow = true  -> min cost over ANY flow value (stop when the path cost >= 0).
+    // anyFlow = false -> min-cost MAX-flow (up to maxFlow units).
+    pair<int, ll> minCostMaxFlow(int _src, int _sink, bool anyFlow = false,
+                                 int maxFlow = INT_MAX) {
+        src = _src;
+        sink = _sink;
+        if (!initPotentials())
+            return {-1, 0};
+        int flow = 0;
+        ll cost = 0;
+        while (flow < maxFlow && dijkstra()) {
+            for (int i = 0; i <= n; ++i)
+                if (dis[i] < LLONG_MAX)
+                    pot[i] += dis[i];
+            if (anyFlow && pot[sink] - pot[src] >= 0)
+                break;
+            int push = maxFlow - flow, cur = sink;
+            while (cur != src) {
+                int p = par[cur], e = from_edge[cur];
+                push = min(push, adj[p][e].cap - adj[p][e].flow);
+                cur = p;
+            }
+            cur = sink;
+            while (cur != src) {
+                int p = par[cur], e = from_edge[cur];
+                adj[p][e].flow += push;
+                adj[cur][adj[p][e].backEdge].flow -= push;
+                cost += 1LL * push * adj[p][e].cost;
+                cur = p;
+            }
+            flow += push;
+        }
+        return {flow, cost};
+    }
 };
