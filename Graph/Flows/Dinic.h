@@ -2,42 +2,40 @@ const int INF = 1e9;
 
 struct Dinic {
     struct flowEdge {
-        int from, to;
+        int to, rev;      // rev = index of the reverse edge in adj[to]
         ll cap, flow = 0;
-        flowEdge(int from, int to, ll cap) :
-                from(from), to(to), cap(cap) {
+        flowEdge(int to, int rev, ll cap) :
+                to(to), rev(rev), cap(cap) {
         }
     };
-    vector<flowEdge> edges;
-    int n, m = 0, source, sink;
-    vector<vector<int>> adj;
+    int n, source, sink;
+    vector<vector<flowEdge>> adj;
     vector<int> level, ptr;
     Dinic(int n, int source, int sink) :
             n(n), source(source), sink(sink), adj(n), level(n), ptr(n) {
     }
-    void addEdge(int u, int v, ll cap) {
-        edges.emplace_back(u, v, cap);
-        edges.emplace_back(v, u, 0);
-        adj[u].push_back(m);
-        adj[v].push_back(m + 1);
-        m += 2;
+    // revCap = capacity of the reverse edge (0 for directed, cap for undirected)
+    void addEdge(int u, int v, ll cap, ll revCap = 0) {
+        int idU = adj[u].size();
+        int idV = adj[v].size() + (u == v);   // handles self-loops safely
+        adj[u].emplace_back(v, idV, cap);
+        adj[v].emplace_back(u, idU, revCap);
     }
     bool bfs() {
         queue<int> q;
-        level = vector<int>(n, -1);
+        level.assign(n, -1);
         level[source] = 0;
         q.push(source);
         while (!q.empty()) {
             int cur = q.front();
             q.pop();
-            for (auto &id : adj[cur]) {
-                if (edges[id].cap - edges[id].flow <= 0)
+            for (auto &e : adj[cur]) {
+                if (e.cap - e.flow <= 0)
                     continue;
-                int nxt = edges[id].to;
-                if (level[nxt] != -1)
+                if (level[e.to] != -1)
                     continue;
-                level[nxt] = level[cur] + 1;
-                q.push(nxt);
+                level[e.to] = level[cur] + 1;
+                q.push(e.to);
             }
         }
         return level[sink] != -1;
@@ -45,17 +43,15 @@ struct Dinic {
     ll dfs(int node, ll cur_flow) {
         if (cur_flow == 0 || node == sink)
             return cur_flow;
-        for (int &cid = ptr[node]; cid < adj[node].size(); cid++) {
-            int id = adj[node][cid];
-            int nxt = edges[id].to;
-            if (level[node] + 1 != level[nxt]
-                    || edges[id].cap - edges[id].flow <= 0)
+        for (int &cid = ptr[node]; cid < (int)adj[node].size(); cid++) {
+            flowEdge &e = adj[node][cid];
+            if (level[node] + 1 != level[e.to] || e.cap - e.flow <= 0)
                 continue;
-            ll tmp = dfs(nxt, min(cur_flow, edges[id].cap - edges[id].flow));
+            ll tmp = dfs(e.to, min(cur_flow, e.cap - e.flow));
             if (tmp == 0)
                 continue;
-            edges[id].flow += tmp;
-            edges[id ^ 1].flow -= tmp;
+            e.flow += tmp;
+            adj[e.to][e.rev].flow -= tmp;
             return tmp;
         }
         return 0;
