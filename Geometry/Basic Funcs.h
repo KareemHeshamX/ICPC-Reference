@@ -152,3 +152,18 @@ vector<P> circle_circle_intersection(P a, ld r, P b, ld R) {
 ld angleBetweenTwoVectors(P a, P b) {
     return atan2l(abs(a^b), a*b);
 }
+
+
+int half(const P &p) {
+    return (p.y > 0 || (p.y == 0 && p.x > 0)) ? 0 : 1;
+}
+
+
+void sortCCW(vector<P> &v) {
+    sort(v.begin(), v.end(), [](const P &a, const P &b) {
+        if (half(a) != half(b)) return half(a) < half(b);
+        ll c = a ^ b;
+        if (c != 0) return c > 0;                 // a comes before b if b is ccw of a
+        return a.x * a.x + a.y * a.y < b.x * b.x + b.y * b.y;  // same direction: closer first
+    });
+}
