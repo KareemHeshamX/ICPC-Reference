@@ -83,3 +83,21 @@ ll nCr(int n, int r) {
 //}
 // ans[k] = ncr(n - k, k);
 // ans[i] = ans[i - 1] + ncr(i - 1, k - 1) * ncr(n - i, k);
+
+
+// bell and sterling numbers
+
+const int N = 5000, mod = 998244353;
+int bell[N + 1], ster[N + 1][N + 1];
+
+void init() {
+	for (int j = 0; j <= N; j++) ster[j][1] = 1;
+	bell[0] = 1;
+	for (int j = 1; j <= N; j++) {
+		bell[j] = 1;
+		for (int k = 2; k <= j; k++) {
+			ster[j][k] = (ster[j - 1][k] * k % mod + ster[j - 1][k - 1]) % mod;
+			bell[j] = (bell[j] + ster[j][k]) % mod;
+		}
+	}
+}
