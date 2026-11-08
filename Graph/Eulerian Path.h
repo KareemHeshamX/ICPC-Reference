@@ -1,86 +1,53 @@
-#include <bits/stdc++.h>
-using namespace std;
-
-// Eulerian path / cycle (Hierholzer, iterative, O(V + E)).
-// Works for directed and undirected graphs, multi-edges and self-loops.
-//
-// Usage:
-//   Euler g(n, directed);          // vertices are 0..n-1
-//   g.add_edge(u, v);
-//   vector<int> p = g.path();      // Eulerian path  (vertex sequence)
-//   vector<int> c = g.cycle();     // Eulerian cycle (first == last vertex)
-//
-// Returns a sequence of m+1 vertices, or an EMPTY vector if none exists.
-// (A graph with no edges returns {0}.)
+// Eulerian path / cycle -- Hierholzer, iterative, O(V+E).
+// Directed or undirected; multi-edges and self-loops are fine.
+//   Euler g(n, directed);   g.add(u, v);     // vertices 0..n-1, edge ids 0,1,2.. in add order
+//   auto p = g.solve();        // any Eulerian path          -> vertices p[0..m]
+//   auto p = g.solve(s);       // path that must start at s
+//   auto p = g.solve(-1, 1);   // Eulerian cycle (p[0] == p[m])
+//   {} means impossible.  g.E[i] = id of the edge between p[i] and p[i+1].
 struct Euler {
     int n, m = 0;
-    bool directed;
-    vector<vector<pair<int, int>>> g;  // (neighbor, edge id)
-    vector<int> in, out;
-
-    Euler(int n, bool directed) : n(n), directed(directed), g(n), in(n), out(n) {}
-
-    void add_edge(int u, int v) {
+    bool dir;
+    vector<vector<pair<int, int>>> g;  // (to, edge id)
+    vector<int> in, E;
+    Euler(int n, bool dir) : n(n), dir(dir), g(n), in(n) {}
+    void add(int u, int v) {
         g[u].push_back({v, m});
-        if (!directed) g[v].push_back({u, m});
-        out[u]++, in[v]++;
-        m++;
+        if (!dir) g[v].push_back({u, m});
+        in[v]++, m++;
     }
-
-    vector<int> solve(bool need_cycle) {
-        if (m == 0) return {0};
-        int start = -1, cs = 0, ce = 0;  // cs = # start-like vertices, ce = # end-like
+    // d(v) = 1: v must be the start, -1: v must be the end, 0: balanced
+    int d(int v) { return dir ? (int)g[v].size() - in[v] : (int)g[v].size() & 1; }
+    vector<int> solve(int s = -1, bool cycle = false) {
+        if (!m) return {s < 0 ? 0 : s};
+        int bad = 0, f = -1;
         for (int v = 0; v < n; v++) {
-            if (directed) {
-                int d = out[v] - in[v];
-                if (d == 1) cs++, start = v;
-                else if (d == -1) ce++;
-                else if (d != 0) return {};
-            } else if (g[v].size() % 2) {
-                cs++, start = v;
-            }
+            int x = d(v);
+            if (abs(x) > 1) return {};
+            bad += x != 0;
+            if (x == 1) f = v;
         }
-        if (directed ? (cs != ce || cs > 1) : (cs != 0 && cs != 2)) return {};
-        if (need_cycle && cs) return {};
-        if (start == -1)  // all balanced: start anywhere that has an edge
-            for (int v = 0; v < n; v++)
-                if (!g[v].empty()) { start = v; break; }
-
-        vector<int> it(n, 0), res, st = {start};
-        vector<char> used(m, 0);
+        if (bad > (cycle ? 0 : 2)) return {};
+        if (s < 0) s = f;                                   // start forced by degrees
+        if (s < 0) for (s = 0; g[s].empty(); s++);          // else: any vertex with an edge
+        if (bad && d(s) != 1) return {};
+        vector<int> it(n), res, st = {s}, se = {-1};
+        vector<char> used(m);
+        E.clear();
         while (!st.empty()) {
-            int v = st.back();
-            while (it[v] < (int)g[v].size() && used[g[v][it[v]].second]) it[v]++;
-            if (it[v] == (int)g[v].size()) {
-                res.push_back(v);
-                st.pop_back();
+            int v = st.back(), &i = it[v];
+            while (i < (int)g[v].size() && used[g[v][i].second]) i++;
+            if (i == (int)g[v].size()) {
+                res.push_back(v), E.push_back(se.back());
+                st.pop_back(), se.pop_back();
             } else {
-                auto [to, id] = g[v][it[v]++];
-                used[id] = 1;
-                st.push_back(to);
+                auto [to, id] = g[v][i++];
+                used[id] = 1, st.push_back(to), se.push_back(id);
             }
         }
-        if ((int)res.size() != m + 1) return {};  // edges not all connected
-        reverse(res.begin(), res.end());
+        if ((int)res.size() != m + 1) return {};            // edges not all connected
+        E.pop_back();
+        reverse(res.begin(), res.end()), reverse(E.begin(), E.end());
         return res;
     }
-
-    vector<int> path() { return solve(false); }
-    vector<int> cycle() { return solve(true); }
 };
-
-int main() {
-    // Example: undirected triangle with a tail -> path exists, cycle doesn't
-    Euler g(4, false);
-    g.add_edge(0, 1);
-    g.add_edge(1, 2);
-    g.add_edge(2, 0);
-    g.add_edge(2, 3);
-
-    auto p = g.path();
-    if (p.empty()) puts("no Eulerian path");
-    else for (int v : p) printf("%d ", v);
-    puts("");
-
-    puts(g.cycle().empty() ? "no Eulerian cycle" : "has Eulerian cycle");
-}
