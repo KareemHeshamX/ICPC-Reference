@@ -32,26 +32,6 @@ ld linePointDis(P l1, P l2, P p) {
     return area / base;
 }
 
-struct cmp {
-    P about;
-
-    cmp(P c) {
-        about = c;
-    }
-
-    bool operator()(const P &a, const P &b) const {
-        ld cr = vec(about, a) ^ vec(about, b);
-        if (fabs(cr) < eps)
-            return a < b;
-        return cr > 0;
-    }
-};
-
-void sortAntiClockWise(vector<P> &pnts) {
-    P mn(*min_element(all(pnts)));
-    sort(pnts.begin(), pnts.end(), cmp(mn));
-}
-
 inline bool pibb(P const &a, P const &b1, P const &b2) {
     return a.x >= min(b1.x, b2.x) &&
            a.x <= max(b1.x, b2.x) &&
@@ -154,16 +134,37 @@ ld angleBetweenTwoVectors(P a, P b) {
 }
 
 
+// half-plane of a vector: [0, pi) -> 0, [pi, 2pi) -> 1
 int half(const P &p) {
     return (p.y > 0 || (p.y == 0 && p.x > 0)) ? 0 : 1;
 }
 
+// sorts v counter-clockwise around center c, starting from the +x direction
+void sortCCW(vector<P> &v, const P &c) {
+    sort(v.begin(), v.end(), [&](const P &a, const P &b) {
+        P da = a - c, db = b - c;
+        int ha = half(da), hb = half(db);
+        if (ha != hb) return ha < hb;
+        ot cr = da ^ db;
+        if (cr != 0) return cr > 0;                                // b is ccw of a -> a first
+        return da.x * da.x + da.y * da.y < db.x * db.x + db.y * db.y;  // same direction: closer first
+    });
+}
 
-void sortCCW(vector<P> &v) {
-    sort(v.begin(), v.end(), [](const P &a, const P &b) {
-        if (half(a) != half(b)) return half(a) < half(b);
-        ll c = a ^ b;
-        if (c != 0) return c > 0;                 // a comes before b if b is ccw of a
-        return a.x * a.x + a.y * a.y < b.x * b.x + b.y * b.y;  // same direction: closer first
+
+void radial_sort(vector<point>& v, bool is_ccw = true) {
+    if (v.empty()) return;
+    P center(0, 0);
+    for (const auto& p : v) {
+        center += p;
+    }
+    center /= (double)v.size();
+    sort(v.begin(), v.end(), [&](const point& a, const point& b) {
+        // vec(center, a) gets the vector from center to A
+        // angle(...) gets its polar angle
+        double angleA = angle(vec(center, a));
+        double angleB = angle(vec(center, b));
+        if (is_ccw) return angleA < angleB; // Counter-Clockwise
+        return angleA > angleB; // Clockwise
     });
 }
