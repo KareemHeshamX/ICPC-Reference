@@ -31,8 +31,7 @@ struct Matrix {
             for (int k = 0; k < cols; k++) {
                 if (v[i][k] == 0) continue;
                 for (int j = 0; j < other.cols; j++) {
-                    res.v[i][j] += (v[i][k] * other.v[k][j]) % MOD;
-                    res.v[i][j] %= MOD;
+                    res.v[i][j] = (res.v[i][j] + v[i][k] * other.v[k][j]) % MOD;
                 }
             }
         }
