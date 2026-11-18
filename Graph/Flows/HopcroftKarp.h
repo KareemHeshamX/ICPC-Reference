@@ -56,3 +56,36 @@ struct Hopcroft_Karp {//1-based
 		return rt;
 	}
 };
+
+
+// Returns {left vertices in cover, right vertices in cover}
+pair<vector<int>, vector<int>> minimum_vertex_cover() {
+	maximum_bipartite_matching();            // must have a MAXIMUM matching first
+
+	vector<bool> visL(n + 1, false), visR(m + 1, false);
+	queue<int> q;
+
+	for (int i = 1; i <= n; i++)
+		if (rowAssign[i] == NIL) {           // unmatched left vertices
+			visL[i] = true;
+			q.push(i);
+		}
+
+	while (!q.empty()) {
+		int u = q.front(); q.pop();
+		for (int v : adj[u]) {               // left -> right (any edge)
+			if (visR[v]) continue;
+			visR[v] = true;
+			int w = colAssign[v];            // right -> left (matching edge)
+			if (w != NIL && !visL[w]) {
+				visL[w] = true;
+				q.push(w);
+			}
+		}
+	}
+
+	vector<int> coverL, coverR;
+	for (int i = 1; i <= n; i++) if (!visL[i]) coverL.push_back(i);  // Left \ Z
+	for (int j = 1; j <= m; j++) if (visR[j])  coverR.push_back(j);  // Right ∩ Z
+	return {coverL, coverR};
+}
